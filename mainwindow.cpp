@@ -16,8 +16,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Timer di campionamento (1 secondo)
     m_timer = new QTimer(this);
+    m_timer->setTimerType(Qt::PreciseTimer);
     connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStats);
-    m_timer->start(1000);
+    m_timer->start(2000);
 }
 
 MainWindow::~MainWindow()
