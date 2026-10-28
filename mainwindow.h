@@ -19,7 +19,8 @@ public:
 
 private slots:
     void updateStats();
-
+    void on_btnPause_clicked();
+    void on_btnReset_clicked();
 private:
     Ui::MainWindow *ui;
     QTimer *m_timer;
@@ -27,7 +28,7 @@ private:
     QString m_iface;
     qint64 m_lastRx;
     qint64 m_lastTx;
-
+    qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
     QString formatBytes(qint64 bytes);
 };

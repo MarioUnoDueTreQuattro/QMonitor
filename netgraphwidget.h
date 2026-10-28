@@ -5,17 +5,23 @@
 #include <QVector>
 #include <QDateTime>
 
-class NetGraphWidget : public QWidget {
+class NetGraphWidget : public QWidget
+{
     Q_OBJECT
 public:
     explicit NetGraphWidget(QWidget *parent = nullptr);
     void addData(qint64 rxSpeed, qint64 txSpeed);
-
+    void resetGraph();
+    qint64 getMaxRx() const;
+    qint64 getMaxTx() const;
+    qint64 getAvgRx() const;
+    qint64 getAvgTx() const;
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    struct DataPoint {
+    struct DataPoint
+    {
         qint64 rx;
         qint64 tx;
         qint64 timestamp;
