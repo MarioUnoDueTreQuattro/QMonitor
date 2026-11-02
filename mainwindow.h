@@ -17,7 +17,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
 private slots:
+    void readSettings();
     void updateStats();
     void on_btnPause_clicked();
     void on_btnReset_clicked();

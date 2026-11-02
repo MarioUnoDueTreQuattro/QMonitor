@@ -16,8 +16,8 @@ void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
     qint64 now = QDateTime::currentMSecsSinceEpoch() / 2000;
     m_history.append({rxSpeed, txSpeed, now});
     // Calcoliamo lo spazio disponibile per adattare lo storico ai pixel correnti
-    int marginLeft = 65;
-    int marginRight = 15;
+    int marginLeft = 60;
+    int marginRight = 0;
     int graphW = width() - marginLeft - marginRight;
     // Se la larghezza è valida, tronchiamo lo storico in eccesso per mantenere 1 punto = 1 pixel
     if (graphW > 10)
@@ -62,10 +62,10 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing);
     int w = width();
     int h = height();
-    int marginLeft = 65;
-    int marginRight = 15;
-    int marginTop = 10;
-    int marginBottom = 20;
+    int marginLeft = 60;
+    int marginRight = 0;
+    int marginTop = 5;
+    int marginBottom = 5;
     int graphX = marginLeft;
     int graphY = marginTop;
     int graphW = w - marginLeft - marginRight;
@@ -77,13 +77,13 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         m_history.remove(0, m_history.size() - graphW);
     }
     // Sfondo generale e area grafico
-    painter.fillRect(rect(), QColor(25, 25, 25));
-    painter.fillRect(graphX, graphY, graphW, graphH, QColor(30, 30, 30));
+    //painter.fillRect(rect(), QColor(25, 25, 25));
+    //painter.fillRect(graphX, graphY, graphW, graphH, QColor(30, 30, 30));
     // --- GRIGLIA TRATTEGGIATA ---
     QPen gridPen(QColor(55, 55, 55), 1, Qt::DashLine);
     painter.setPen(gridPen);
     painter.setFont(QFont("SansSerif", 8));
-    int hDivisions = 4;
+    int hDivisions = 6;
     for (int i = 0; i <= hDivisions; ++i)
     {
         int y = graphY + (graphH * i / hDivisions);
@@ -91,15 +91,15 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         qint64 val = m_maxVal - (m_maxVal * i / hDivisions);
         QString label = formatBytes(val) + "/s";
         painter.setPen(QColor(170, 170, 170));
-        painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
+        if (i!=hDivisions) painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
         painter.setPen(gridPen);
     }
-    int vDivisions = 6;
-    for (int i = 0; i <= vDivisions; ++i)
-    {
-        int x = graphX + (graphW * i / vDivisions);
-        painter.drawLine(x, graphY, x, graphY + graphH);
-    }
+    // int vDivisions = 6;
+    // for (int i = 0; i <= vDivisions; ++i)
+    // {
+    //     int x = graphX + (graphW * i / vDivisions);
+    //     painter.drawLine(x, graphY, x, graphY + graphH);
+    // }
     painter.setPen(QColor(70, 70, 70));
     painter.drawRect(graphX, graphY, graphW, graphH);
     if (m_history.size() < 2) return;
@@ -107,7 +107,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
     auto drawSeries = [&](auto extractValue, const QColor & color)
     {
-        painter.setPen(QPen(color, 1.6));
+        painter.setPen(QPen(color, 1.5));
         QPainterPath path;
         bool first = true;
         for (int i = 0; i < m_history.size(); ++i)
@@ -129,8 +129,8 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         }
         painter.drawPath(path);
     };
-    drawSeries([](const DataPoint & p) { return p.rx; }, QColor(0, 230, 118));
-    drawSeries([](const DataPoint & p) { return p.tx; }, QColor(0, 176, 255));
+    drawSeries([](const DataPoint & p) { return p.rx; }, QColor(0, 211, 10));
+    drawSeries([](const DataPoint & p) { return p.tx; }, QColor(255, 57, 0));
 }
 
 qint64 NetGraphWidget::getMaxRx() const

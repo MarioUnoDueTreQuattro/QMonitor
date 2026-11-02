@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
+#include <QSettings>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -19,11 +21,36 @@ MainWindow::MainWindow(QWidget *parent)
     m_timer->setTimerType(Qt::PreciseTimer);
     connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStats);
     m_timer->start(2000);
+    ui->labelAvg->setText("");
+    ui->labelMax->setText("");
+    ui->labelSpeed->setText("");
+    readSettings();
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    // Salva posizione, dimensioni e stato massimizzato/schermo intero
+    settings.setValue("geometry", saveGeometry());
+    // Salva la disposizione delle barre degli strumenti e dei pannelli agganciati (necessario objectName)
+    settings.setValue("windowState", saveState());
+
+    QMainWindow::closeEvent(event);
+}
+
+void MainWindow::readSettings()
+{
+QSettings settings;
+ // Ripristina la geometria della finestra
+ restoreGeometry(settings.value("geometry").toByteArray());
+ // Ripristina lo stato di barre degli strumenti e pannelli agganciati
+ restoreState(settings.value("windowState").toByteArray());
 }
 
 void MainWindow::updateStats()

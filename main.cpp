@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("andreag");
     QCoreApplication::setApplicationName("QMonitor");
     QGuiApplication::setDesktopFileName("QMonitor");
-    a.setWindowIcon(QIcon::fromTheme("QMonitor"));
+    a.setWindowIcon(QIcon::fromTheme("utilities-system-monitor"));
     MainWindow w;
     w.show();
     return QApplication::exec();
