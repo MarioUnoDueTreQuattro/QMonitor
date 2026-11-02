@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QVector>
 #include <QDateTime>
+#include <QPen>
 
 class NetGraphWidget : public QWidget
 {
@@ -12,12 +13,19 @@ public:
     explicit NetGraphWidget(QWidget *parent = nullptr);
     void addData(qint64 rxSpeed, qint64 txSpeed);
     void resetGraph();
+    void setPaused(bool);
+
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
     qint64 getAvgTx() const;
+    bool paused() const;
+
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+private slots:
+    void showContextMenu(const QPoint &pos);
 
 private:
     struct DataPoint
@@ -30,8 +38,14 @@ private:
     QVector<DataPoint> m_history;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
-
+    bool m_paused = false;
     QString formatBytes(qint64 bytes) const;
+    QFont m_gridFont;
+    QPen  m_penRx{QColor(0, 211, 10), 1.5};
+    QPen  m_penTx{QColor(255, 57, 0), 1.5};
+    QPen  m_gridPen{QColor(55, 55, 55), 1, Qt::DashLine};
+    QPen m_borderPen{QColor(70, 70, 70)};
+    QPen m_labelPen{QColor(170, 170, 170)};
 };
 
 #endif // NETGRAPHWIDGET_H

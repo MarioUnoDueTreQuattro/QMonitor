@@ -15,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
-
     // Timer di campionamento (1 secondo)
     m_timer = new QTimer(this);
     m_timer->setTimerType(Qt::PreciseTimer);
@@ -25,7 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->labelMax->setText("");
     ui->labelSpeed->setText("");
     readSettings();
-
+    ui->btnPause->setVisible(false);
+    ui->btnReset->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -40,70 +40,71 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("geometry", saveGeometry());
     // Salva la disposizione delle barre degli strumenti e dei pannelli agganciati (necessario objectName)
     settings.setValue("windowState", saveState());
-
     QMainWindow::closeEvent(event);
 }
 
 void MainWindow::readSettings()
 {
-QSettings settings;
- // Ripristina la geometria della finestra
- restoreGeometry(settings.value("geometry").toByteArray());
- // Ripristina lo stato di barre degli strumenti e pannelli agganciati
- restoreState(settings.value("windowState").toByteArray());
+    QSettings settings;
+    // Ripristina la geometria della finestra
+    restoreGeometry(settings.value("geometry").toByteArray());
+    // Ripristina lo stato di barre degli strumenti e pannelli agganciati
+    restoreState(settings.value("windowState").toByteArray());
 }
 
 void MainWindow::updateStats()
 {
+    bool graphIsPaused = ui->netGraph->paused();
+    if (graphIsPaused) return;
     qint64 rx = 0, tx = 0;
-    if (readNetDev(m_iface, rx, tx)) {
+    if (readNetDev(m_iface, rx, tx))
+    {
         qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-
-        if (m_lastRx > 0 && m_lastTime > 0) {
+        if (m_lastRx > 0 && m_lastTime > 0)
+        {
             qint64 elapsedMs = currentTime - m_lastTime;
-
             // Ignoriamo chiamate duplicate troppo ravvicinate (< 400ms)
             if (elapsedMs < 400) return;
-
             double seconds = elapsedMs / 1000.0;
-
             qint64 rxDiff = rx - m_lastRx;
             qint64 txDiff = tx - m_lastTx;
-
             qint64 rxSpeed = (rxDiff > 0 && seconds > 0) ? static_cast<qint64>(rxDiff / seconds) : 0;
             qint64 txSpeed = (txDiff > 0 && seconds > 0) ? static_cast<qint64>(txDiff / seconds) : 0;
-
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
-
             // 1. Aggiornamento della velocità istantanea
-            if (ui->labelSpeed) {
-                ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
-                    .arg(formatBytes(rxSpeed))
-                    .arg(formatBytes(txSpeed)));
+            if (ui->labelSpeed)
+            {
+                // ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
+                //     .arg(formatBytes(rxSpeed))
+                //     .arg(formatBytes(txSpeed)));
+                ui->statusbar->showMessage(QString("DL: %1  |  UL: %2")
+                                           .arg(formatBytes(rxSpeed))
+                                           .arg(formatBytes(txSpeed)));
             }
-
             // Inseriamo prima il punto nello storico del widget grafico
-            if (ui->netGraph) {
+            if (ui->netGraph)
+            {
                 ui->netGraph->addData(rxSpeed, txSpeed);
             }
-
             // 2. Aggiornamento della velocità media (prelevata dallo storico del grafico)
-            if (ui->labelAvg) {
+            if (ui->labelAvg)
+            {
                 ui->labelAvg->setText(QString("Avg - DL: %1  |  UL: %2")
                     .arg(formatBytes(ui->netGraph->getAvgRx()))
                     .arg(formatBytes(ui->netGraph->getAvgTx())));
             }
-
             // 3. Aggiornamento della velocità massima (picco storico)
-            if (ui->labelMax) {
+            if (ui->labelMax)
+            {
                 ui->labelMax->setText(QString("Max - DL: %1  |  UL: %2")
                     .arg(formatBytes(ui->netGraph->getMaxRx()))
                     .arg(formatBytes(ui->netGraph->getMaxTx())));
             }
-
-        } else {
+        }
+        else
+        {
             // Prima esecuzione: inizializzazione dei riferimenti
             m_lastRx = rx;
             m_lastTx = tx;
@@ -116,16 +117,17 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
 {
     QFile file("/proc/net/dev");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
-
     QTextStream in(&file);
     in.readLine();
     in.readLine();
-
-    while (!in.atEnd()) {
+    while (!in.atEnd())
+    {
         QString line = in.readLine().trimmed();
-        if (line.startsWith(targetIface + ":")) {
+        if (line.startsWith(targetIface + ":"))
+        {
             QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-            if (parts.size() >= 10) {
+            if (parts.size() >= 10)
+            {
                 rxBytes = parts[1].toLongLong();
                 txBytes = parts[9].toLongLong();
                 return true;
@@ -144,13 +146,15 @@ QString MainWindow::formatBytes(qint64 bytes)
 
 void MainWindow::on_btnPause_clicked()
 {
-    if (m_timer->isActive()) {
+    if (m_timer->isActive())
+    {
         m_timer->stop();
         ui->btnPause->setText("Resume");
-    } else {
+    }
+    else
+    {
         m_timer->start(2000);
         ui->btnPause->setText("Pause");
-
         // Importante: azzeriamo i contatori precedenti alla ripresa,
         // altrimenti il primo delta dopo la pausa calcolerebbe un tempo enorme o un salto sballato.
         m_lastRx = 0;
@@ -162,7 +166,6 @@ void MainWindow::on_btnReset_clicked()
 {
     // Puliamo il grafico
     ui->netGraph->resetGraph();
-
     // Azzeriamo anche i contatori di rete per ripartire puliti con il prossimo delta
     m_lastRx = 0;
     m_lastTx = 0;

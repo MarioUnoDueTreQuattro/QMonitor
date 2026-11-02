@@ -3,12 +3,46 @@
 #include <QPen>
 #include <QColor>
 #include <QPainterPath>
+#include <QMenu>
+#include <QAction>
+#include <QContextMenuEvent>
 
 NetGraphWidget::NetGraphWidget(QWidget *parent)
     : QWidget(parent)
     , m_maxVal(1024)
 {
     setMinimumSize(250, 140);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested,
+        this, &NetGraphWidget::showContextMenu);
+    m_gridFont = QFont("SansSerif", 8);
+}
+
+void NetGraphWidget::showContextMenu(const QPoint &pos)
+{
+    QMenu menu(this);
+    QAction *actReset = menu.addAction(tr("Reset"));
+    //menu.addSeparator();
+    QAction *actPause = menu.addAction(tr("Pause"));
+    actPause->setCheckable(true);
+    actPause->setChecked(m_paused);
+    // Esecuzione modale: restituisce l'action scelta (o nullptr)
+    QAction *selected = menu.exec(mapToGlobal(pos));
+    if (!selected)
+        return;
+    if (selected == actReset)
+    {
+        resetGraph();
+    }
+    else if (selected == actPause)
+    {
+        setPaused(selected->isChecked());
+    }
+}
+
+bool NetGraphWidget::paused() const
+{
+    return m_paused;
 }
 
 void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
@@ -45,6 +79,11 @@ void NetGraphWidget::resetGraph()
     update();
 }
 
+void NetGraphWidget::setPaused(bool paused)
+{
+    m_paused = paused;
+}
+
 QString NetGraphWidget::formatBytes(qint64 bytes) const
 {
     if (bytes < 1024)
@@ -54,6 +93,20 @@ QString NetGraphWidget::formatBytes(qint64 bytes) const
     if (bytes < 1024LL * 1024 * 1024)
         return QString("%1 MB").arg(bytes / (1024.0 * 1024.0), 0, 'f', 1);
     return QString("%1 GB").arg(bytes / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
+}
+
+void NetGraphWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    // Quando la finestra viene ridimensionata, tronchiamo subito lo storico
+    // se eccede la nuova larghezza disponibile
+    int marginLeft = 60;
+    int marginRight = 0;
+    int graphW = width() - marginLeft - marginRight;
+    if (graphW > 10 && m_history.size() > graphW)
+    {
+        m_history.remove(0, m_history.size() - graphW);
+    }
 }
 
 void NetGraphWidget::paintEvent(QPaintEvent *)
@@ -72,42 +125,42 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     int graphH = h - marginTop - marginBottom;
     if (graphW <= 50 || graphH <= 30) return;
     // Controllo di sicurezza sincronizzato per il ridimensionamento della finestra
-    if (m_history.size() > graphW)
-    {
-        m_history.remove(0, m_history.size() - graphW);
-    }
+    // if (m_history.size() > graphW)
+    // {
+    // m_history.remove(0, m_history.size() - graphW);
+    // }
     // Sfondo generale e area grafico
     //painter.fillRect(rect(), QColor(25, 25, 25));
     //painter.fillRect(graphX, graphY, graphW, graphH, QColor(30, 30, 30));
     // --- GRIGLIA TRATTEGGIATA ---
-    QPen gridPen(QColor(55, 55, 55), 1, Qt::DashLine);
-    painter.setPen(gridPen);
-    painter.setFont(QFont("SansSerif", 8));
-    int hDivisions = 6;
+    //QPen gridPen(QColor(55, 55, 55), 1, Qt::DashLine);
+    painter.setPen(m_gridPen);
+    painter.setFont(m_gridFont);
+    int hDivisions = 4;
     for (int i = 0; i <= hDivisions; ++i)
     {
         int y = graphY + (graphH * i / hDivisions);
         painter.drawLine(graphX, y, graphX + graphW, y);
         qint64 val = m_maxVal - (m_maxVal * i / hDivisions);
         QString label = formatBytes(val) + "/s";
-        painter.setPen(QColor(170, 170, 170));
-        if (i!=hDivisions) painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
-        painter.setPen(gridPen);
+        painter.setPen(m_labelPen);
+        if (i != hDivisions) painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
+        painter.setPen(m_gridPen);
     }
     // int vDivisions = 6;
     // for (int i = 0; i <= vDivisions; ++i)
     // {
-    //     int x = graphX + (graphW * i / vDivisions);
-    //     painter.drawLine(x, graphY, x, graphY + graphH);
+    // int x = graphX + (graphW * i / vDivisions);
+    // painter.drawLine(x, graphY, x, graphY + graphH);
     // }
-    painter.setPen(QColor(70, 70, 70));
+    painter.setPen(m_borderPen);
     painter.drawRect(graphX, graphY, graphW, graphH);
     if (m_history.size() < 2) return;
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
-    auto drawSeries = [&](auto extractValue, const QColor & color)
+    auto drawSeries = [&](auto extractValue, const QPen & pen)
     {
-        painter.setPen(QPen(color, 1.5));
+        painter.setPen(pen);
         QPainterPath path;
         bool first = true;
         for (int i = 0; i < m_history.size(); ++i)
@@ -129,8 +182,8 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         }
         painter.drawPath(path);
     };
-    drawSeries([](const DataPoint & p) { return p.rx; }, QColor(0, 211, 10));
-    drawSeries([](const DataPoint & p) { return p.tx; }, QColor(255, 57, 0));
+    drawSeries([](const DataPoint & p) { return p.rx; }, m_penRx);
+    drawSeries([](const DataPoint & p) { return p.tx; }, m_penTx);
 }
 
 qint64 NetGraphWidget::getMaxRx() const
