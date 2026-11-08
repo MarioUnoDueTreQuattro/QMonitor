@@ -46,6 +46,9 @@ private:
     QPen  m_gridPen{QColor(55, 55, 55), 1, Qt::DashLine};
     QPen m_borderPen{QColor(70, 70, 70)};
     QPen m_labelPen{QColor(170, 170, 170)};
+signals:
+    void settingsRequested(); // custom signal
+
 };
 
 #endif // NETGRAPHWIDGET_H

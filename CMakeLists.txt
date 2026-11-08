@@ -12,6 +12,9 @@ qt_add_executable(QMonitor
     mainwindow.h
     mainwindow.ui
     netgraphwidget.h netgraphwidget.cpp
+    settings_dialog.ui
+    settings_dialog.cpp
+    settings_dialog.h
 )
 
 target_link_libraries(QMonitor

@@ -11,7 +11,7 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
     : QWidget(parent)
     , m_maxVal(1024)
 {
-    setMinimumSize(250, 140);
+    setMinimumSize(250, 100);
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested,
         this, &NetGraphWidget::showContextMenu);
@@ -22,10 +22,11 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
 {
     QMenu menu(this);
     QAction *actReset = menu.addAction(tr("Reset"));
-    //menu.addSeparator();
     QAction *actPause = menu.addAction(tr("Pause"));
     actPause->setCheckable(true);
     actPause->setChecked(m_paused);
+    menu.addSeparator();
+    QAction *actSettings = menu.addAction(tr("Settings..."));
     // Esecuzione modale: restituisce l'action scelta (o nullptr)
     QAction *selected = menu.exec(mapToGlobal(pos));
     if (!selected)
@@ -37,6 +38,10 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     else if (selected == actPause)
     {
         setPaused(selected->isChecked());
+    }
+    else if (selected == actSettings)
+    {
+        emit settingsRequested();
     }
 }
 
@@ -118,7 +123,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     int marginLeft = 60;
     int marginRight = 0;
     int marginTop = 5;
-    int marginBottom = 5;
+    int marginBottom = 0;
     int graphX = marginLeft;
     int graphY = marginTop;
     int graphW = w - marginLeft - marginRight;

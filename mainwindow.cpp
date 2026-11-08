@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "settings_dialog.h"
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
@@ -26,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
     readSettings();
     ui->btnPause->setVisible(false);
     ui->btnReset->setVisible(false);
+    ui->horizontalSpacer_2->changeSize(0,0);// setVisible(false);
+    connect(ui->netGraph, &NetGraphWidget::settingsRequested, this, &MainWindow::on_actionSettings_triggered);
+
 }
 
 MainWindow::~MainWindow()
@@ -79,7 +83,7 @@ void MainWindow::updateStats()
                 // ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
                 //     .arg(formatBytes(rxSpeed))
                 //     .arg(formatBytes(txSpeed)));
-                ui->statusbar->showMessage(QString("DL: %1  |  UL: %2")
+                ui->statusbar->showMessage(QString("DL: %1 - UL: %2")
                                            .arg(formatBytes(rxSpeed))
                                            .arg(formatBytes(txSpeed)));
             }
@@ -91,14 +95,14 @@ void MainWindow::updateStats()
             // 2. Aggiornamento della velocità media (prelevata dallo storico del grafico)
             if (ui->labelAvg)
             {
-                ui->labelAvg->setText(QString("Avg - DL: %1  |  UL: %2")
+                ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
                     .arg(formatBytes(ui->netGraph->getAvgRx()))
                     .arg(formatBytes(ui->netGraph->getAvgTx())));
             }
             // 3. Aggiornamento della velocità massima (picco storico)
             if (ui->labelMax)
             {
-                ui->labelMax->setText(QString("Max - DL: %1  |  UL: %2")
+                ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
                     .arg(formatBytes(ui->netGraph->getMaxRx()))
                     .arg(formatBytes(ui->netGraph->getMaxTx())));
             }
@@ -170,3 +174,18 @@ void MainWindow::on_btnReset_clicked()
     m_lastRx = 0;
     m_lastTx = 0;
 }
+
+void MainWindow::on_actionSettings_triggered()
+{
+    SettingsDialog settingsDialog;
+    connect(&settingsDialog, SIGNAL(accepted()), this, SLOT(settingsDialogAccepted()));
+    connect(&settingsDialog, SIGNAL(applyClicked()), this, SLOT(settingsDialogAccepted()));
+    settingsDialog.exec();
+    return;
+}
+
+void MainWindow::settingsDialogAccepted()
+{
+    qDebug() << __PRETTY_FUNCTION__;
+}
+

@@ -24,6 +24,8 @@ private slots:
     void updateStats();
     void on_btnPause_clicked();
     void on_btnReset_clicked();
+    void on_actionSettings_triggered();
+
 private:
     Ui::MainWindow *ui;
     QTimer *m_timer;
@@ -34,6 +36,8 @@ private:
     qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
     QString formatBytes(qint64 bytes);
+    void settingsDialogAccepted();
+
 };
 
 #endif // MAINWINDOW_H
