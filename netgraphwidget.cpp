@@ -232,3 +232,19 @@ qint64 NetGraphWidget::getAvgTx() const
     }
     return sum / m_history.size();
 }
+
+void NetGraphWidget::setDownloadColor(const QColor &newColor)
+{
+    if (!newColor.isValid() || newColor == m_penRx.color())
+        return;
+    m_penRx.setColor(newColor);
+    update();   // schedule a repaint
+}
+
+void NetGraphWidget::setUploadColor(const QColor &newColor)
+{
+    if (!newColor.isValid() || newColor == m_penTx.color())
+        return;
+    m_penTx.setColor(newColor);
+    update();   // schedule a repaint
+}

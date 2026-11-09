@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
+    settings = new QSettings();
     // Timer di campionamento (1 secondo)
     m_timer = new QTimer(this);
     m_timer->setTimerType(Qt::PreciseTimer);
@@ -27,33 +28,32 @@ MainWindow::MainWindow(QWidget *parent)
     readSettings();
     ui->btnPause->setVisible(false);
     ui->btnReset->setVisible(false);
-    ui->horizontalSpacer_2->changeSize(0,0);// setVisible(false);
+    ui->horizontalSpacer_2->changeSize(0, 0); // setVisible(false);
     connect(ui->netGraph, &NetGraphWidget::settingsRequested, this, &MainWindow::on_actionSettings_triggered);
-
 }
 
 MainWindow::~MainWindow()
 {
+    delete settings;
     delete ui;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    QSettings settings;
     // Salva posizione, dimensioni e stato massimizzato/schermo intero
-    settings.setValue("geometry", saveGeometry());
+    settings->setValue("geometry", saveGeometry());
     // Salva la disposizione delle barre degli strumenti e dei pannelli agganciati (necessario objectName)
-    settings.setValue("windowState", saveState());
+    settings->setValue("windowState", saveState());
     QMainWindow::closeEvent(event);
 }
 
 void MainWindow::readSettings()
 {
-    QSettings settings;
     // Ripristina la geometria della finestra
-    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreGeometry(settings->value("geometry").toByteArray());
     // Ripristina lo stato di barre degli strumenti e pannelli agganciati
-    restoreState(settings.value("windowState").toByteArray());
+    restoreState(settings->value("windowState").toByteArray());
+    setNetGraphSettings();
 }
 
 void MainWindow::updateStats()
@@ -81,11 +81,11 @@ void MainWindow::updateStats()
             if (ui->labelSpeed)
             {
                 // ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
-                //     .arg(formatBytes(rxSpeed))
-                //     .arg(formatBytes(txSpeed)));
+                // .arg(formatBytes(rxSpeed))
+                // .arg(formatBytes(txSpeed)));
                 ui->statusbar->showMessage(QString("DL: %1 - UL: %2")
-                                           .arg(formatBytes(rxSpeed))
-                                           .arg(formatBytes(txSpeed)));
+                    .arg(formatBytes(rxSpeed))
+                    .arg(formatBytes(txSpeed)));
             }
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
@@ -184,8 +184,17 @@ void MainWindow::on_actionSettings_triggered()
     return;
 }
 
+void MainWindow::setNetGraphSettings()
+{
+    QColor defaultColor = QColor(0, 192, 0, 255);
+    ui->netGraph->setDownloadColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
+    defaultColor = QColor(255, 85, 0, 255);
+    ui->netGraph->setUploadColor(settings->value("pushButtonColorUpload", defaultColor.name()).toString());
+}
+
 void MainWindow::settingsDialogAccepted()
 {
     qDebug() << __PRETTY_FUNCTION__;
+    setNetGraphSettings();
 }
 

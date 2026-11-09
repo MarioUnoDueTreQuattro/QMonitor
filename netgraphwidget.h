@@ -14,6 +14,8 @@ public:
     void addData(qint64 rxSpeed, qint64 txSpeed);
     void resetGraph();
     void setPaused(bool);
+    void setDownloadColor(const QColor &newColor);
+    void setUploadColor(const QColor &newColor);
 
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
@@ -41,9 +43,9 @@ private:
     bool m_paused = false;
     QString formatBytes(qint64 bytes) const;
     QFont m_gridFont;
-    QPen  m_penRx{QColor(0, 211, 10), 1.5};
-    QPen  m_penTx{QColor(255, 57, 0), 1.5};
-    QPen  m_gridPen{QColor(55, 55, 55), 1, Qt::DashLine};
+    QPen m_penRx{QColor(0, 211, 10), 1.5};
+    QPen m_penTx{QColor(255, 57, 0), 1.5};
+    QPen m_gridPen{QColor(55, 55, 55), 1, Qt::DashLine};
     QPen m_borderPen{QColor(70, 70, 70)};
     QPen m_labelPen{QColor(170, 170, 170)};
 signals:

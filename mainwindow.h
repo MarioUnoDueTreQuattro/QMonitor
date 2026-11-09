@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QSettings>
 #include "netgraphwidget.h"
 
 QT_BEGIN_NAMESPACE
@@ -25,19 +26,20 @@ private slots:
     void on_btnPause_clicked();
     void on_btnReset_clicked();
     void on_actionSettings_triggered();
+    void settingsDialogAccepted();
 
 private:
     Ui::MainWindow *ui;
     QTimer *m_timer;
-
+    QSettings *settings;
     QString m_iface;
     qint64 m_lastRx;
     qint64 m_lastTx;
     qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
     QString formatBytes(qint64 bytes);
-    void settingsDialogAccepted();
 
+    void setNetGraphSettings();
 };
 
 #endif // MAINWINDOW_H
