@@ -236,28 +236,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkConfirmDelete">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+        <widget class="ColorButton" name="pushButtonColorTest">
          <property name="text">
-          <string>Confirm File Deletion</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkConfirmOverwrite">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Confirm File Overwrite</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+          <string/>
          </property>
         </widget>
        </item>
@@ -290,6 +271,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ColorButton</class>
+   <extends>QPushButton</extends>
+   <header>colorbutton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

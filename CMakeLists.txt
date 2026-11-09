@@ -15,6 +15,7 @@ qt_add_executable(QMonitor
     settings_dialog.ui
     settings_dialog.cpp
     settings_dialog.h
+    colorbutton.h colorbutton.cpp
 )
 
 target_link_libraries(QMonitor

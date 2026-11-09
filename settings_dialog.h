@@ -29,6 +29,8 @@ private:
     QPushButton *btnCancel;
     void saveSettings();
     void loadSettings();
+    void loadColors();
+    void saveColors();
 private slots:
     void on_buttonBox_clicked(QAbstractButton *button);
     void on_SettingsDialog_accepted();

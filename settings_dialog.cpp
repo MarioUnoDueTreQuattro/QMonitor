@@ -47,6 +47,7 @@ void SettingsDialog::saveSettings()
     settingsMgr->setValue("SingleInstance", ui->checkSingleInstance->isChecked());
     settingsMgr->setValue("SettingsTab", ui->tabWidget->currentIndex());
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
+    saveColors();
     settingsMgr->sync();
 }
 
@@ -75,6 +76,7 @@ void SettingsDialog::loadSettings()
     }
     int iTab = settingsMgr->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
+    loadColors();
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
@@ -127,5 +129,27 @@ void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
         // break;
         default:
             break;
+    }
+}
+
+void SettingsDialog::loadColors()
+{
+    QList<ColorButton *> buttons = findChildren<ColorButton *>();
+    for (int i = 0; i < buttons.size(); ++i)
+    {
+        ColorButton *button = buttons.at(i);
+        QColor defaultColor = button->color();
+        QString storedName = settingsMgr->value(button->objectName(), defaultColor.name()).toString();
+        button->setColor(QColor(storedName));
+    }
+}
+
+void SettingsDialog::saveColors()
+{
+    QList<ColorButton *> buttons = findChildren<ColorButton *>();
+    for (int i = 0; i < buttons.size(); ++i)
+    {
+        ColorButton *button = buttons.at(i);
+        settingsMgr->setValue(button->objectName(), button->color().name());
     }
 }
