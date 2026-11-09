@@ -134,11 +134,13 @@ void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
 
 void SettingsDialog::loadColors()
 {
+    QColor defaultColor;
     QList<ColorButton *> buttons = findChildren<ColorButton *>();
     for (int i = 0; i < buttons.size(); ++i)
     {
         ColorButton *button = buttons.at(i);
-        QColor defaultColor = button->color();
+        if (button->objectName()=="pushButtonColorDownload")  defaultColor = QColor(0, 192, 0, 255);
+        if (button->objectName()=="pushButtonColorUpload")  defaultColor = QColor(255, 85, 0, 255);
         QString storedName = settingsMgr->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }
