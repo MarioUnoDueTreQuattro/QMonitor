@@ -226,12 +226,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkForceDolphin">
+        <widget class="QCheckBox" name="checkShowAvgMax">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="text">
-          <string>Force Dolphin as file manager (no D-Bus)</string>
+          <string>Show average and maximum speed</string>
          </property>
         </widget>
        </item>

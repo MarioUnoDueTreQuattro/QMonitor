@@ -33,8 +33,6 @@ void SettingsDialog::setupDialog()
     // if (auto *btnApply = ui->buttonBox->button(QDialogButtonBox::Apply)) {
     // connect(btnApply, &QPushButton::clicked, this, &SettingsDialog::applyButtonClicked);
     // }
-    bool bSingleInstance = settingsMgr->value("SingleInstance", true).toBool();
-    ui->checkSingleInstance->setChecked(bSingleInstance);
     // Default: forza Dolphin se NON siamo su KDE/Plasma
     // const QString desktop = qEnvironmentVariable("XDG_CURRENT_DESKTOP").toLower();
     // const bool isKde = desktop.contains("kde") || desktop.contains("plasma");
@@ -45,6 +43,7 @@ void SettingsDialog::setupDialog()
 void SettingsDialog::saveSettings()
 {
     settingsMgr->setValue("SingleInstance", ui->checkSingleInstance->isChecked());
+    settingsMgr->setValue("ShowAvgMax", ui->checkShowAvgMax->isChecked());
     settingsMgr->setValue("SettingsTab", ui->tabWidget->currentIndex());
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
@@ -76,6 +75,10 @@ void SettingsDialog::loadSettings()
     }
     int iTab = settingsMgr->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
+    bool bShowAvgMax=settingsMgr->value("ShowAvgMax", true).toBool();
+    ui->checkShowAvgMax->setChecked(bShowAvgMax);
+    bool bSingleInstance = settingsMgr->value("SingleInstance", true).toBool();
+    ui->checkSingleInstance->setChecked(bSingleInstance);
     loadColors();
 }
 

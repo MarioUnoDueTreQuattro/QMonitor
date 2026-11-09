@@ -11,7 +11,7 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
     : QWidget(parent)
     , m_maxVal(1024)
 {
-    setMinimumSize(250, 100);
+    setMinimumSize(80, 60);
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested,
         this, &NetGraphWidget::showContextMenu);
@@ -22,11 +22,14 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
 {
     QMenu menu(this);
     QAction *actReset = menu.addAction(tr("Reset"));
+    actReset->setIcon(QIcon::fromTheme("system-reboot"));
     QAction *actPause = menu.addAction(tr("Pause"));
+    actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
     actPause->setCheckable(true);
     actPause->setChecked(m_paused);
     menu.addSeparator();
     QAction *actSettings = menu.addAction(tr("Settings..."));
+    actSettings->setIcon(QIcon::fromTheme("configure"));
     // Esecuzione modale: restituisce l'action scelta (o nullptr)
     QAction *selected = menu.exec(mapToGlobal(pos));
     if (!selected)
@@ -114,6 +117,29 @@ void NetGraphWidget::resizeEvent(QResizeEvent *event)
     }
 }
 
+void NetGraphWidget::drawSeries(QPainter &painter, const QPen &pen, bool useRx,
+    const QRect &graphRect, double stepX)
+{
+    if (m_maxVal <= 0)
+        return;   // avoid division by zero
+    const double bottom = graphRect.top() + graphRect.height();
+    QPainterPath path;
+    for (int i = 0; i < m_history.size(); ++i)
+    {
+        double x = graphRect.left() + (i * stepX);
+        qint64 val = useRx ? m_history[i].rx : m_history[i].tx;
+        double y = bottom - (static_cast<double>(val) / m_maxVal) * graphRect.height();
+        // Keep the line inside the graph area
+        y = qBound(static_cast<double>(graphRect.top()), y, bottom);
+        if (i == 0)
+            path.moveTo(x, y);
+        else
+            path.lineTo(x, y);
+    }
+    painter.setPen(pen);
+    painter.drawPath(path);
+}
+
 void NetGraphWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
@@ -163,32 +189,9 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     if (m_history.size() < 2) return;
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
-    auto drawSeries = [&](auto extractValue, const QPen & pen)
-    {
-        painter.setPen(pen);
-        QPainterPath path;
-        bool first = true;
-        for (int i = 0; i < m_history.size(); ++i)
-        {
-            double x = graphX + (i * stepX);
-            qint64 val = extractValue(m_history[i]);
-            double y = (graphY + graphH) - (static_cast<double>(val) / m_maxVal) * graphH;
-            if (y < graphY) y = graphY;
-            if (y > graphY + graphH) y = graphY + graphH;
-            if (first)
-            {
-                path.moveTo(x, y);
-                first = false;
-            }
-            else
-            {
-                path.lineTo(x, y);
-            }
-        }
-        painter.drawPath(path);
-    };
-    drawSeries([](const DataPoint & p) { return p.rx; }, m_penRx);
-    drawSeries([](const DataPoint & p) { return p.tx; }, m_penTx);
+    QRect graphRect(graphX, graphY, graphW, graphH);
+    drawSeries(painter, m_penRx, true, graphRect, stepX);
+    drawSeries(painter, m_penTx, false, graphRect, stepX);
 }
 
 qint64 NetGraphWidget::getMaxRx() const

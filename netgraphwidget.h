@@ -30,6 +30,7 @@ private slots:
     void showContextMenu(const QPoint &pos);
 
 private:
+    void drawSeries(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
     {
         qint64 rx;

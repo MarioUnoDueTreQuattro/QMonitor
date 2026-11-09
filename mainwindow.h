@@ -1,10 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "netgraphwidget.h"
 #include <QMainWindow>
 #include <QTimer>
 #include <QSettings>
-#include "netgraphwidget.h"
+// #include <QSystemTrayIcon>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,6 +31,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    // QSystemTrayIcon *m_trayIcon;
     QTimer *m_timer;
     QSettings *settings;
     QString m_iface;
@@ -40,6 +42,7 @@ private:
     QString formatBytes(qint64 bytes);
 
     void setNetGraphSettings();
+    bool m_bShowAvgMax;
 };
 
 #endif // MAINWINDOW_H

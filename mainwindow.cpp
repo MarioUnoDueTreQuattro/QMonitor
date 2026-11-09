@@ -25,11 +25,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->labelAvg->setText("");
     ui->labelMax->setText("");
     ui->labelSpeed->setText("");
+    ui->labelSpeed->setVisible(false);
     readSettings();
     ui->btnPause->setVisible(false);
     ui->btnReset->setVisible(false);
     ui->horizontalSpacer_2->changeSize(0, 0); // setVisible(false);
     connect(ui->netGraph, &NetGraphWidget::settingsRequested, this, &MainWindow::on_actionSettings_triggered);
+    // m_trayIcon=new QSystemTrayIcon(this);
+    // m_trayIcon->setIcon(this->windowIcon());
+    // m_trayIcon->show();
 }
 
 MainWindow::~MainWindow()
@@ -53,6 +57,9 @@ void MainWindow::readSettings()
     restoreGeometry(settings->value("geometry").toByteArray());
     // Ripristina lo stato di barre degli strumenti e pannelli agganciati
     restoreState(settings->value("windowState").toByteArray());
+    m_bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
+    ui->labelAvg->setVisible(m_bShowAvgMax);
+    ui->labelMax->setVisible(m_bShowAvgMax);
     setNetGraphSettings();
 }
 
@@ -93,18 +100,21 @@ void MainWindow::updateStats()
                 ui->netGraph->addData(rxSpeed, txSpeed);
             }
             // 2. Aggiornamento della velocità media (prelevata dallo storico del grafico)
-            if (ui->labelAvg)
+            if (m_bShowAvgMax)
             {
-                ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
-                    .arg(formatBytes(ui->netGraph->getAvgRx()))
-                    .arg(formatBytes(ui->netGraph->getAvgTx())));
-            }
-            // 3. Aggiornamento della velocità massima (picco storico)
-            if (ui->labelMax)
-            {
-                ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
-                    .arg(formatBytes(ui->netGraph->getMaxRx()))
-                    .arg(formatBytes(ui->netGraph->getMaxTx())));
+                if (ui->labelAvg)
+                {
+                    ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
+                        .arg(formatBytes(ui->netGraph->getAvgRx()))
+                        .arg(formatBytes(ui->netGraph->getAvgTx())));
+                }
+                // 3. Aggiornamento della velocità massima (picco storico)
+                if (ui->labelMax)
+                {
+                    ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
+                        .arg(formatBytes(ui->netGraph->getMaxRx()))
+                        .arg(formatBytes(ui->netGraph->getMaxTx())));
+                }
             }
         }
         else
@@ -195,6 +205,13 @@ void MainWindow::setNetGraphSettings()
 void MainWindow::settingsDialogAccepted()
 {
     qDebug() << __PRETTY_FUNCTION__;
+    m_bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
+    ui->labelAvg->setVisible(m_bShowAvgMax);
+    ui->labelMax->setVisible(m_bShowAvgMax);
+    // ui->horizontalLayout->invalidate();
+    // ui->horizontalLayout->parentWidget()->adjustSize();
+    // ui->horizontalLayout->parentWidget()->setVisible(false);
+    // ui->horizontalLayout->parentWidget()->setVisible(true);
     setNetGraphSettings();
 }
 
