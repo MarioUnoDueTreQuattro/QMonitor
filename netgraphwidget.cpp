@@ -140,6 +140,32 @@ void NetGraphWidget::drawSeries(QPainter &painter, const QPen &pen, bool useRx,
     painter.drawPath(path);
 }
 
+void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
+    const QRect &graphRect)
+{
+    if (m_maxVal <= 0 || m_history.isEmpty())
+        return;
+    const int bottom = graphRect.bottom();
+    const int samplesToDraw = qMin(static_cast<int>(m_history.size()), graphRect.width());
+    const int firstSample = m_history.size() - samplesToDraw;
+    // The newest sample is on the right edge, the oldest scrolls out on the left
+    const int firstX = graphRect.right() - samplesToDraw + 1;
+    QVector<QLine> lines;
+    lines.reserve(samplesToDraw);
+    for (int i = 0; i < samplesToDraw; ++i)
+    {
+        qint64 val = useRx ? m_history[firstSample + i].rx : m_history[firstSample + i].tx;
+        int barHeight = static_cast<int>(static_cast<double>(val) / m_maxVal * graphRect.height());
+        barHeight = qBound(0, barHeight, graphRect.height());
+        int x = firstX + i;
+        lines.append(QLine(x, bottom, x, bottom - barHeight));
+    }
+    // Integer coordinates + 1 px pen: no antialiasing needed, and it is much cheaper
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(pen);
+    painter.drawLines(lines);
+}
+
 void NetGraphWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
@@ -190,8 +216,16 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
     QRect graphRect(graphX, graphY, graphW, graphH);
-    drawSeries(painter, m_penRx, true, graphRect, stepX);
-    drawSeries(painter, m_penTx, false, graphRect, stepX);
+    if (m_drawMode == DrawModeBars)
+    {
+        drawSeriesBars(painter, m_penRx, true, graphRect);
+        drawSeriesBars(painter, m_penTx, false, graphRect);
+    }
+    else
+    {
+        drawSeries(painter, m_penRx, true, graphRect, stepX);
+        drawSeries(painter, m_penTx, false, graphRect, stepX);
+    }
 }
 
 qint64 NetGraphWidget::getMaxRx() const
@@ -234,6 +268,15 @@ qint64 NetGraphWidget::getAvgTx() const
         sum += pt.tx;
     }
     return sum / m_history.size();
+}
+
+void NetGraphWidget::setDrawMode(int newMode)
+{
+    if (newMode == m_drawMode)
+        return;
+
+    m_drawMode = static_cast<DrawMode>(newMode);
+    update();
 }
 
 void NetGraphWidget::setDownloadColor(const QColor &newColor)

@@ -47,6 +47,7 @@ void SettingsDialog::saveSettings()
     settingsMgr->setValue("SettingsTab", ui->tabWidget->currentIndex());
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
+    settingsMgr->setValue("DrawModeLines", ui->radioButtonDrawModeLines->isChecked());
     settingsMgr->sync();
 }
 
@@ -75,11 +76,14 @@ void SettingsDialog::loadSettings()
     }
     int iTab = settingsMgr->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
-    bool bShowAvgMax=settingsMgr->value("ShowAvgMax", true).toBool();
+    bool bShowAvgMax = settingsMgr->value("ShowAvgMax", true).toBool();
     ui->checkShowAvgMax->setChecked(bShowAvgMax);
     bool bSingleInstance = settingsMgr->value("SingleInstance", true).toBool();
     ui->checkSingleInstance->setChecked(bSingleInstance);
     loadColors();
+    bool bDrawModeLines = settingsMgr->value("DrawModeLines", true).toBool();
+    if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
+    else ui->radioButtonDrawModeBars->setChecked(true);
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
@@ -142,8 +146,8 @@ void SettingsDialog::loadColors()
     for (int i = 0; i < buttons.size(); ++i)
     {
         ColorButton *button = buttons.at(i);
-        if (button->objectName()=="pushButtonColorDownload")  defaultColor = QColor(0, 192, 0, 255);
-        if (button->objectName()=="pushButtonColorUpload")  defaultColor = QColor(255, 85, 0, 255);
+        if (button->objectName() == "pushButtonColorDownload") defaultColor = QColor(0, 192, 0, 255);
+        if (button->objectName() == "pushButtonColorUpload") defaultColor = QColor(255, 85, 0, 255);
         QString storedName = settingsMgr->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }

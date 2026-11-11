@@ -200,6 +200,9 @@ void MainWindow::setNetGraphSettings()
     ui->netGraph->setDownloadColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
     defaultColor = QColor(255, 85, 0, 255);
     ui->netGraph->setUploadColor(settings->value("pushButtonColorUpload", defaultColor.name()).toString());
+    bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
+    if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
+
 }
 
 void MainWindow::settingsDialogAccepted()

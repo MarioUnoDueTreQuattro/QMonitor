@@ -16,13 +16,12 @@ public:
     void setPaused(bool);
     void setDownloadColor(const QColor &newColor);
     void setUploadColor(const QColor &newColor);
-
+    void setDrawMode(int newMode);
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
     qint64 getAvgTx() const;
     bool paused() const;
-
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -30,6 +29,12 @@ private slots:
     void showContextMenu(const QPoint &pos);
 
 private:
+    enum DrawMode { DrawModeLine, DrawModeBars };
+    // DrawMode m_drawMode = DrawModeLine;
+    DrawMode m_drawMode = DrawModeBars;
+
+    void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
+                        const QRect &graphRect);
     void drawSeries(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
     {
