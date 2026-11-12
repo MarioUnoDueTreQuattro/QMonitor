@@ -24,6 +24,8 @@ public:
     qint64 getAvgTx() const;
     bool paused() const;
     enum DrawMode { DrawModeLines, DrawModeBars };
+    void setUpdateIntervalNet(int newUpdateIntervalNet);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -52,6 +54,7 @@ private:
     QPen m_borderPen{QColor(48, 48, 48)};
     QPen m_labelPen{QColor(160, 160, 160)};
     qint64 getTrayVisibleMax(int visibleSamples) const;
+    int m_updateIntervalNet;
 signals:
     void settingsRequested(); // custom signal
     void pauseStateChanged(); // custom signal

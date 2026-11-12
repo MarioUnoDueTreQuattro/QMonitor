@@ -48,6 +48,7 @@ void SettingsDialog::saveSettings()
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
     settings->setValue("DrawModeLines", ui->radioButtonDrawModeLines->isChecked());
+    settings->setValue("UpdateIntervalNet",ui->spinBoxInterval->value());
     settings->sync();
 }
 
@@ -84,6 +85,7 @@ void SettingsDialog::loadSettings()
     bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
     if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
     else ui->radioButtonDrawModeBars->setChecked(true);
+    ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet",2000).toInt());
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)

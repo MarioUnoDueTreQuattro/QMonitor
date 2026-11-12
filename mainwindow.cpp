@@ -18,10 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
+    m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
     m_timer = new QTimer(this);
     m_timer->setTimerType(Qt::PreciseTimer);
     connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStats);
-    m_timer->start(2000);
+    m_timer->start(m_updateIntervalNet);
     ui->labelAvg->setText("");
     ui->labelMax->setText("");
     ui->labelSpeed->setText("");
@@ -34,10 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->netGraph, &NetGraphWidget::pauseStateChanged, this, &MainWindow::on_pauseChanged);
     m_trayIconNet = new QSystemTrayIcon(this);
     m_trayIconNet->setIcon(this->windowIcon());
-    connect(m_trayIconNet,
-        &QSystemTrayIcon::activated,
-        this,
-        &MainWindow::trayIconActivated);
+    connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
     trayMenuNet = new QMenu(this);
     showHideAction = trayMenuNet->addAction("Hide/Show");
     showHideAction->setIcon(QIcon::fromTheme("utilities-system-monitor"));
@@ -161,20 +159,20 @@ void MainWindow::updateStats()
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
+            QString s_rxSpeed = formatBytes(rxSpeed);
+            QString s_txSpeed = formatBytes(txSpeed);
             // 1. Aggiornamento della velocità istantanea
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
             {
                 ui->netGraph->addData(rxSpeed, txSpeed);
                 //m_trayIcon->showMessage(QString(""),QString("Down: %1\nUp: %2").arg(formatBytes(rxSpeed)).arg(formatBytes(txSpeed)),QSystemTrayIcon::Information,5000);
-                //m_trayIcon->setToolTip(QString("Down: %1\nUp: %2")                   .arg(s_rxSpeed).arg(s_txSpeed));
+                m_trayIconNet->setToolTip(QString("Down: %1\nUp: %2") .arg(s_rxSpeed).arg(s_txSpeed));
             }
             if (isVisible())
             {
                 if (ui->labelSpeed)
                 {
-                    QString s_rxSpeed = formatBytes(rxSpeed);
-                    QString s_txSpeed = formatBytes(txSpeed);
                     // ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
                     // .arg(formatBytes(rxSpeed))
                     // .arg(formatBytes(txSpeed)));
@@ -294,6 +292,9 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::setNetGraphSettings()
 {
+    m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
+    m_timer->setInterval(m_updateIntervalNet);
+    ui->netGraph->setUpdateIntervalNet(m_updateIntervalNet);
     QColor defaultColor = QColor(0, 192, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
     int iAlplha = settings->value("DownloadOpacity", 100).toInt();

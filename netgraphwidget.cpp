@@ -16,6 +16,7 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
     connect(this, &QWidget::customContextMenuRequested,
         this, &NetGraphWidget::showContextMenu);
     m_gridFont = QFont("SansSerif", 8);
+    m_updateIntervalNet = 2000;
 }
 
 void NetGraphWidget::showContextMenu(const QPoint &pos)
@@ -55,7 +56,7 @@ bool NetGraphWidget::paused() const
 
 void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
 {
-    qint64 now = QDateTime::currentMSecsSinceEpoch() / 2000;
+    qint64 now = QDateTime::currentMSecsSinceEpoch() / m_updateIntervalNet;
     m_history.append({rxSpeed, txSpeed, now});
     // Calcoliamo lo spazio disponibile per adattare lo storico ai pixel correnti
     int marginLeft = 60;
@@ -196,6 +197,11 @@ qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
         maxVal = qMax(maxVal, m_history[i].tx);
     }
     return maxVal;
+}
+
+void NetGraphWidget::setUpdateIntervalNet(int newUpdateIntervalNet)
+{
+    m_updateIntervalNet = newUpdateIntervalNet;
 }
 
 void NetGraphWidget::paintEvent(QPaintEvent *)

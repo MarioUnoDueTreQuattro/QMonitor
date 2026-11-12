@@ -25,7 +25,7 @@ private slots:
     void readSettings();
     void updateStats();
     void on_btnPause_clicked();
-    void on_pauseChanged( );
+    void on_pauseChanged();
     void on_btnReset_clicked();
     void on_actionSettings_triggered();
     void settingsDialogAccepted();
@@ -49,7 +49,7 @@ private:
     qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
     QString formatBytes(qint64 bytes);
-
+    int m_updateIntervalNet;
     void setNetGraphSettings();
     bool m_bShowAvgMax;
     bool m_isQuitting = false;
