@@ -308,7 +308,7 @@ void MainWindow::setNetGraphSettings()
     ui->netGraph->setUploadColor(defaultColor);
     bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
     //if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
-    ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLine : NetGraphWidget::DrawModeBars);
+    ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLines : NetGraphWidget::DrawModeBars);
 }
 
 void MainWindow::settingsDialogAccepted()

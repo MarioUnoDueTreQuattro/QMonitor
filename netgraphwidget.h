@@ -23,27 +23,23 @@ public:
     qint64 getAvgRx() const;
     qint64 getAvgTx() const;
     bool paused() const;
-    enum DrawMode { DrawModeLine, DrawModeBars };
-
+    enum DrawMode { DrawModeLines, DrawModeBars };
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 private slots:
     void showContextMenu(const QPoint &pos);
-
 private:
-    DrawMode m_drawMode = DrawModeLine;
+    DrawMode m_drawMode = DrawModeLines;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
         const QRect &graphRect, bool isTray);
-    void drawSeries(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
-    void paintBars(QPainter &painter, const QRect &graphRect);
+    void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
     {
         qint64 rx;
         qint64 tx;
         qint64 timestamp;
     };
-
     QVector<DataPoint> m_history;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)

@@ -118,7 +118,7 @@ void NetGraphWidget::resizeEvent(QResizeEvent *event)
     }
 }
 
-void NetGraphWidget::drawSeries(QPainter &painter, const QPen &pen, bool useRx,
+void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx,
     const QRect &graphRect, double stepX)
 {
     if (m_maxVal <= 0)
@@ -174,21 +174,14 @@ QPixmap NetGraphWidget::renderTrayIcon(int size)
     QPixmap pixmap(size, size);
     pixmap.fill(Qt::transparent);   // or a dark background, see below
     QPainter painter(&pixmap);
-    paintBars(painter, QRect(0, 0, size, size));
-    return pixmap;
-}
-
-void NetGraphWidget::paintBars(QPainter &painter, const QRect &graphRect)
-{
     painter.setRenderHint(QPainter::Antialiasing, false);
-    if (m_history.size() < 2) return;
-    // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
-    double stepX = static_cast<double>(graphRect.width()) / (m_history.size() - 1);
-    //QRect graphRect(graphX, graphY, graphW, graphH);
-    // if (m_drawMode == 0) painter.setRenderHint(QPainter::Antialiasing);
-    // else painter.setRenderHint(QPainter::Antialiasing, false);
-    drawSeriesBars(painter, m_penRx, true, graphRect, true);
-    drawSeriesBars(painter, m_penTx, false, graphRect, true);
+    if (m_history.size() >= 2)
+    {
+        QRect graphRect(0, 0, size, size);
+        drawSeriesBars(painter, m_penRx, true, graphRect, true);
+        drawSeriesBars(painter, m_penTx, false, graphRect, true);
+    }
+    return pixmap;
 }
 
 qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
@@ -264,8 +257,8 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     }
     else
     {
-        drawSeries(painter, m_penRx, true, graphRect, stepX);
-        drawSeries(painter, m_penTx, false, graphRect, stepX);
+        drawSeriesLines(painter, m_penRx, true, graphRect, stepX);
+        drawSeriesLines(painter, m_penTx, false, graphRect, stepX);
     }
 }
 
