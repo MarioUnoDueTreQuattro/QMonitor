@@ -11,7 +11,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle("Settings");
-    settingsMgr = new QSettings();
+    settings = new QSettings();
     setupDialog();
     adjustSize();
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(saveCurrentTabIndex(int)));
@@ -19,7 +19,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
 SettingsDialog::~SettingsDialog()
 {
-    delete settingsMgr;
+    delete settings;
     delete ui;
 }
 
@@ -42,13 +42,13 @@ void SettingsDialog::setupDialog()
 
 void SettingsDialog::saveSettings()
 {
-    settingsMgr->setValue("SingleInstance", ui->checkSingleInstance->isChecked());
-    settingsMgr->setValue("ShowAvgMax", ui->checkShowAvgMax->isChecked());
-    settingsMgr->setValue("SettingsTab", ui->tabWidget->currentIndex());
+    settings->setValue("SingleInstance", ui->checkSingleInstance->isChecked());
+    settings->setValue("ShowAvgMax", ui->checkShowAvgMax->isChecked());
+    settings->setValue("SettingsTab", ui->tabWidget->currentIndex());
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
-    settingsMgr->setValue("DrawModeLines", ui->radioButtonDrawModeLines->isChecked());
-    settingsMgr->sync();
+    settings->setValue("DrawModeLines", ui->radioButtonDrawModeLines->isChecked());
+    settings->sync();
 }
 
 void SettingsDialog::loadSettings()
@@ -63,7 +63,7 @@ void SettingsDialog::loadSettings()
     int pos_x = (screenGeometry.width() - this->width()) / 2;
     int pos_y = (screenGeometry.height() - this->height()) / 2;
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-    QPoint savedPos = settingsMgr->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
+    QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
     //QScreen *screen = QGuiApplication::screenAt(savedPos);
     if (screen)
     {
@@ -74,14 +74,14 @@ void SettingsDialog::loadSettings()
         // Se la posizione non è valida, centra la finestra
         move(QPoint(pos_x, pos_y));
     }
-    int iTab = settingsMgr->value("SettingsTab", 0).toInt();
+    int iTab = settings->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
-    bool bShowAvgMax = settingsMgr->value("ShowAvgMax", true).toBool();
+    bool bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
     ui->checkShowAvgMax->setChecked(bShowAvgMax);
-    bool bSingleInstance = settingsMgr->value("SingleInstance", true).toBool();
+    bool bSingleInstance = settings->value("SingleInstance", true).toBool();
     ui->checkSingleInstance->setChecked(bSingleInstance);
     loadColors();
-    bool bDrawModeLines = settingsMgr->value("DrawModeLines", true).toBool();
+    bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
     if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
     else ui->radioButtonDrawModeBars->setChecked(true);
 }
@@ -90,7 +90,7 @@ void SettingsDialog::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-    if (isVisible()) settingsMgr->setValue("SettingsPosition", pos());
+    if (isVisible()) settings->setValue("SettingsPosition", pos());
 }
 
 void SettingsDialog::applyButtonClicked()
@@ -107,7 +107,7 @@ void SettingsDialog::on_SettingsDialog_accepted()
 
 void SettingsDialog::saveCurrentTabIndex(int)
 {
-    settingsMgr->setValue("SettingsTab", ui->tabWidget->currentIndex());
+    settings->setValue("SettingsTab", ui->tabWidget->currentIndex());
 }
 
 void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
@@ -148,9 +148,11 @@ void SettingsDialog::loadColors()
         ColorButton *button = buttons.at(i);
         if (button->objectName() == "pushButtonColorDownload") defaultColor = QColor(0, 192, 0, 255);
         if (button->objectName() == "pushButtonColorUpload") defaultColor = QColor(255, 85, 0, 255);
-        QString storedName = settingsMgr->value(button->objectName(), defaultColor.name()).toString();
+        QString storedName = settings->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }
+    ui->spinBoxDownOpacity->setValue(settings->value("DownloadOpacity", 100).toInt());
+    ui->spinBoxUpOpacity->setValue(settings->value("UploadOpacity", 100).toInt());
 }
 
 void SettingsDialog::saveColors()
@@ -159,6 +161,8 @@ void SettingsDialog::saveColors()
     for (int i = 0; i < buttons.size(); ++i)
     {
         ColorButton *button = buttons.at(i);
-        settingsMgr->setValue(button->objectName(), button->color().name());
+        settings->setValue(button->objectName(), button->color().name());
     }
+    settings->setValue("DownloadOpacity", ui->spinBoxDownOpacity->value());
+    settings->setValue("UploadOpacity", ui->spinBoxUpOpacity->value());
 }

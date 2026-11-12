@@ -21,7 +21,6 @@ void ColorButton::setColor(const QColor &newColor)
 {
     if (!newColor.isValid() || newColor == m_color)
         return;
-
     m_color = newColor;
     updateSwatch();
     emit colorChanged(m_color);
@@ -29,7 +28,19 @@ void ColorButton::setColor(const QColor &newColor)
 
 void ColorButton::chooseColor()
 {
-    QColor chosenColor = QColorDialog::getColor(m_color, this, tr("Select a color"));
+    // QColor chosenColor ;
+    // QColorDialog colorDialog(m_color, this);
+
+    // colorDialog.setOption(QColorDialog::ShowAlphaChannel, true);
+    // colorDialog.setOption(QColorDialog::DontUseNativeDialog, true);
+    // colorDialog.setCurrentColor(m_color);
+
+    // if (colorDialog.exec() == QDialog::Accepted)
+    // {
+    //     chosenColor = colorDialog.selectedColor();
+    //      setColor(chosenColor);
+    // }
+    QColor chosenColor = QColorDialog::getColor(m_color, this, tr("Select a color")/*, QColorDialog::ShowAlphaChannel|QColorDialog::DontUseNativeDialog*/);
     if (chosenColor.isValid())
         setColor(chosenColor);
 }
@@ -43,4 +54,5 @@ void ColorButton::updateSwatch()
     setIcon(QIcon(swatch));
     setIconSize(swatch.size());
     setToolTip(m_color.name());
+    //setToolTip(m_color.name(QColor::HexArgb));
 }

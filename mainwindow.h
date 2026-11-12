@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QSettings>
-// #include <QSystemTrayIcon>
+#include <QSystemTrayIcon>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,13 +25,22 @@ private slots:
     void readSettings();
     void updateStats();
     void on_btnPause_clicked();
+    void on_pauseChanged( );
     void on_btnReset_clicked();
     void on_actionSettings_triggered();
     void settingsDialogAccepted();
 
+    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void toggleMainWindow();
+    void quitApplication();
 private:
     Ui::MainWindow *ui;
-    // QSystemTrayIcon *m_trayIcon;
+    QSystemTrayIcon *m_trayIconNet;
+    QMenu *trayMenuNet;
+    QAction *actPause;
+    QAction *showHideAction;
+    QAction *quitAction;
+    QAction *actSettings;
     QTimer *m_timer;
     QSettings *settings;
     QString m_iface;
@@ -43,6 +52,7 @@ private:
 
     void setNetGraphSettings();
     bool m_bShowAvgMax;
+    bool m_isQuitting = false;
 };
 
 #endif // MAINWINDOW_H

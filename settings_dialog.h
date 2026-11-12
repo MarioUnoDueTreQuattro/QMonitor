@@ -19,10 +19,9 @@ public:
     explicit SettingsDialog(QWidget *parent = nullptr);
     ~SettingsDialog();
     void setupDialog();
-
 private:
     Ui::SettingsDialog *ui;
-    QSettings *settingsMgr;
+    QSettings *settings;
     QDialogButtonBox *buttonBox;
     QPushButton *btnOk;
     QPushButton *btnApply;
@@ -38,7 +37,6 @@ private slots:
     void applyButtonClicked();
 protected:
     void moveEvent(QMoveEvent *event) override;
-
 signals:
     void applyClicked(); // custom signal
 };

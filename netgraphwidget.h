@@ -17,11 +17,14 @@ public:
     void setDownloadColor(const QColor &newColor);
     void setUploadColor(const QColor &newColor);
     void setDrawMode(int newMode);
+    QPixmap renderTrayIcon(int size);
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
     qint64 getAvgTx() const;
     bool paused() const;
+    enum DrawMode { DrawModeLine, DrawModeBars };
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -29,13 +32,11 @@ private slots:
     void showContextMenu(const QPoint &pos);
 
 private:
-    enum DrawMode { DrawModeLine, DrawModeBars };
-    // DrawMode m_drawMode = DrawModeLine;
-    DrawMode m_drawMode = DrawModeBars;
-
+    DrawMode m_drawMode = DrawModeLine;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
-                        const QRect &graphRect);
+        const QRect &graphRect, bool isTray);
     void drawSeries(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
+    void paintBars(QPainter &painter, const QRect &graphRect);
     struct DataPoint
     {
         qint64 rx;
@@ -51,11 +52,13 @@ private:
     QFont m_gridFont;
     QPen m_penRx{QColor(0, 211, 10), 1.5};
     QPen m_penTx{QColor(255, 57, 0), 1.5};
-    QPen m_gridPen{QColor(55, 55, 55), 1, Qt::DashLine};
-    QPen m_borderPen{QColor(70, 70, 70)};
-    QPen m_labelPen{QColor(170, 170, 170)};
+    QPen m_gridPen{QColor(48, 48, 48), 1, Qt::DashLine};
+    QPen m_borderPen{QColor(48, 48, 48)};
+    QPen m_labelPen{QColor(160, 160, 160)};
+    qint64 getTrayVisibleMax(int visibleSamples) const;
 signals:
     void settingsRequested(); // custom signal
+    void pauseStateChanged(); // custom signal
 
 };
 
