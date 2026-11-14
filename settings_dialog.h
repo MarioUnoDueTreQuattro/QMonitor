@@ -35,6 +35,12 @@ private slots:
     void on_SettingsDialog_accepted();
     void saveCurrentTabIndex(int);
     void applyButtonClicked();
+    void on_checkBoxMonitorNet_checkStateChanged(const Qt::CheckState &arg1);
+
+    void on_checkBoxMonitorCPU_checkStateChanged(const Qt::CheckState &arg1);
+
+    void on_checkBoxMonitorMemory_checkStateChanged(const Qt::CheckState &arg1);
+
 protected:
     void moveEvent(QMoveEvent *event) override;
 signals:

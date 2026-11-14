@@ -43,12 +43,15 @@ void SettingsDialog::setupDialog()
 void SettingsDialog::saveSettings()
 {
     settings->setValue("SingleInstance", ui->checkSingleInstance->isChecked());
-    settings->setValue("ShowAvgMax", ui->checkShowAvgMax->isChecked());
+    settings->setValue("ShowAvgMaxNet", ui->checkShowAvgMax->isChecked());
     settings->setValue("SettingsTab", ui->tabWidget->currentIndex());
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
-    settings->setValue("DrawModeLines", ui->radioButtonDrawModeLines->isChecked());
-    settings->setValue("UpdateIntervalNet",ui->spinBoxInterval->value());
+    settings->setValue("DrawModeLinesNet", ui->radioButtonDrawModeLines->isChecked());
+    settings->setValue("UpdateIntervalNet", ui->spinBoxInterval->value());
+    settings->setValue("MonitorNet", ui->checkBoxMonitorNet->isChecked());
+    settings->setValue("MonitorCPU", ui->checkBoxMonitorCPU->isChecked());
+    settings->setValue("MonitorMemory", ui->checkBoxMonitorMemory->isChecked());
     settings->sync();
 }
 
@@ -77,15 +80,21 @@ void SettingsDialog::loadSettings()
     }
     int iTab = settings->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
-    bool bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
+    bool bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
     ui->checkShowAvgMax->setChecked(bShowAvgMax);
     bool bSingleInstance = settings->value("SingleInstance", true).toBool();
     ui->checkSingleInstance->setChecked(bSingleInstance);
     loadColors();
-    bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
+    bool bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
     if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
     else ui->radioButtonDrawModeBars->setChecked(true);
-    ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet",2000).toInt());
+    ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet", 2000).toInt());
+    ui->checkBoxMonitorNet->setChecked(settings->value("MonitorNet", true).toBool());
+    ui->checkBoxMonitorCPU->setChecked(settings->value("MonitorCPU", true).toBool());
+    ui->checkBoxMonitorMemory->setChecked(settings->value("MonitorMemory", true).toBool());
+    on_checkBoxMonitorNet_checkStateChanged(ui->checkBoxMonitorNet->checkState());
+    on_checkBoxMonitorCPU_checkStateChanged(ui->checkBoxMonitorCPU->checkState());
+    on_checkBoxMonitorMemory_checkStateChanged(ui->checkBoxMonitorMemory->checkState());
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
@@ -168,3 +177,52 @@ void SettingsDialog::saveColors()
     settings->setValue("DownloadOpacity", ui->spinBoxDownOpacity->value());
     settings->setValue("UploadOpacity", ui->spinBoxUpOpacity->value());
 }
+
+void SettingsDialog::on_checkBoxMonitorNet_checkStateChanged(const Qt::CheckState &arg1)
+{
+    const bool enabled = (arg1 == Qt::Checked);
+    QWidget *page = ui->checkBoxMonitorNet->parentWidget();
+    if (!page)
+        return;
+    const auto widgets = page->findChildren<QWidget *>();
+    for (QWidget *w : widgets)
+    {
+        if (w == ui->checkBoxMonitorNet)
+            continue;
+        w->setEnabled(enabled);
+    }
+    // settings->setValue("MonitorNet", ui->checkBoxMonitorNet->isChecked());
+}
+
+void SettingsDialog::on_checkBoxMonitorCPU_checkStateChanged(const Qt::CheckState &arg1)
+{
+    const bool enabled = (arg1 == Qt::Checked);
+    QWidget *page = ui->checkBoxMonitorCPU->parentWidget();
+    if (!page)
+        return;
+    const auto widgets = page->findChildren<QWidget *>();
+    for (QWidget *w : widgets)
+    {
+        if (w == ui->checkBoxMonitorCPU)
+            continue;
+        w->setEnabled(enabled);
+    }
+    // settings->setValue("MonitorCPU", enabled);
+}
+
+void SettingsDialog::on_checkBoxMonitorMemory_checkStateChanged(const Qt::CheckState &arg1)
+{
+    const bool enabled = (arg1 == Qt::Checked);
+    QWidget *page = ui->checkBoxMonitorMemory->parentWidget();
+    if (!page)
+        return;
+    const auto widgets = page->findChildren<QWidget *>();
+    for (QWidget *w : widgets)
+    {
+        if (w == ui->checkBoxMonitorMemory)
+            continue;
+        w->setEnabled(enabled);
+    }
+
+}
+

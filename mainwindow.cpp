@@ -127,13 +127,13 @@ void MainWindow::readSettings()
     restoreGeometry(settings->value("geometry").toByteArray());
     // Ripristina lo stato di barre degli strumenti e pannelli agganciati
     restoreState(settings->value("windowState").toByteArray());
-    m_bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
+    m_bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
     ui->labelAvg->setVisible(m_bShowAvgMax);
     ui->labelMax->setVisible(m_bShowAvgMax);
     bool bIsVisible = settings->value("MainWinVisible", true).toBool();
     if (!bIsVisible)
     {
-        QTimer::singleShot(1000, this, &MainWindow::hide);
+        QTimer::singleShot(500, this, &MainWindow::hide);
     }
     setNetGraphSettings();
 }
@@ -307,7 +307,7 @@ void MainWindow::setNetGraphSettings()
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     ui->netGraph->setUploadColor(defaultColor);
-    bool bDrawModeLines = settings->value("DrawModeLines", true).toBool();
+    bool bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
     //if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
     ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLines : NetGraphWidget::DrawModeBars);
 }
@@ -315,7 +315,7 @@ void MainWindow::setNetGraphSettings()
 void MainWindow::settingsDialogAccepted()
 {
     qDebug() << __PRETTY_FUNCTION__;
-    m_bShowAvgMax = settings->value("ShowAvgMax", true).toBool();
+    m_bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
     ui->labelAvg->setVisible(m_bShowAvgMax);
     ui->labelMax->setVisible(m_bShowAvgMax);
     // ui->horizontalLayout->invalidate();
