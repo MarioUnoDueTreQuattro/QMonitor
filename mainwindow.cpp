@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->btnReset->setVisible(false);
     ui->horizontalSpacer_2->changeSize(0, 0); // setVisible(false);
     connect(ui->netGraph, &NetGraphWidget::settingsRequested, this, &MainWindow::on_actionSettings_triggered);
+    connect(ui->netGraph, &NetGraphWidget::aboutRequested, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->netGraph, &NetGraphWidget::pauseStateChanged, this, &MainWindow::on_pauseChanged);
     m_trayIconNet = new QSystemTrayIcon(this);
     m_trayIconNet->setIcon(this->windowIcon());

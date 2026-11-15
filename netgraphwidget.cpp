@@ -31,6 +31,11 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     menu.addSeparator();
     QAction *actSettings = menu.addAction(tr("Settings..."));
     actSettings->setIcon(QIcon::fromTheme("configure"));
+
+    actSettings->setIcon(QIcon::fromTheme("configure"));
+    QAction *actAbout = menu.addAction(tr("About..."));
+    actAbout->setIcon(QIcon::fromTheme("utilities-system-monitor"));
+
     // Esecuzione modale: restituisce l'action scelta (o nullptr)
     QAction *selected = menu.exec(mapToGlobal(pos));
     if (!selected)
@@ -46,6 +51,10 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     else if (selected == actSettings)
     {
         emit settingsRequested();
+    }
+    else if (selected == actAbout)
+    {
+        emit aboutRequested();
     }
 }
 

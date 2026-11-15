@@ -57,6 +57,7 @@ private:
     int m_updateIntervalNet;
 signals:
     void settingsRequested(); // custom signal
+    void aboutRequested(); // custom signal
     void pauseStateChanged(); // custom signal
 
 };

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 project(QMonitor LANGUAGES CXX)
-set(APP_VERSION "0.1.1")
+set(APP_VERSION "0.1.2")
 configure_file(version.h.in version.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
