@@ -34,7 +34,7 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
 
     actSettings->setIcon(QIcon::fromTheme("configure"));
     QAction *actAbout = menu.addAction(tr("About..."));
-    actAbout->setIcon(QIcon::fromTheme("utilities-system-monitor"));
+    actAbout->setIcon(QIcon::fromTheme("QMonitor"));
 
     // Esecuzione modale: restituisce l'action scelta (o nullptr)
     QAction *selected = menu.exec(mapToGlobal(pos));

@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     actSettings = trayMenuNet->addAction(tr("Settings..."));
     actSettings->setIcon(QIcon::fromTheme("configure"));
     actAbout = trayMenuNet->addAction(tr("About..."));
-    actAbout->setIcon(QIcon::fromTheme("utilities-system-monitor"));
+    actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32,32));
     trayMenuNet->addSeparator();
     quitAction = trayMenuNet->addAction("Exit");
     quitAction->setIcon(QIcon::fromTheme("application-exit"));

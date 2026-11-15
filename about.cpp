@@ -111,7 +111,7 @@ void AboutDialog::setupWidgets()
 {
     //QPixmap iconPix = QPixmap(":/img/img/icons8-play-96.png").scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     //QPixmap iconPix = QPixmap(":/img/img/icons8-play-96.png");
-    QPixmap iconPix = QIcon::fromTheme("utilities-system-monitor").pixmap(128, 128);
+    QPixmap iconPix = QIcon::fromTheme("QMonitor").pixmap(128, 128);
     // Se l'icona non viene trovata nel sistema, iconPix sarà vuota (.isNull() == true)
     if (iconPix.isNull())
     {
