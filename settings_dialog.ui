@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <property name="usesScrollButtons">
       <bool>false</bool>
@@ -38,19 +38,83 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkBoxAlwaysOnTop">
+         <property name="text">
+          <string>Window always on top</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxTitlebar">
+         <property name="text">
+          <string>Hide window title bar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Window opacity:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBoxWindowOpacity">
+           <property name="suffix">
+            <string>%</string>
+           </property>
+           <property name="minimum">
+            <number>10</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="singleStep">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="0">
           <widget class="QLabel" name="labelThreads_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>CPU threads:</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QComboBox" name="comboBoxThreads"/>
+          <widget class="QComboBox" name="comboBoxThreads">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
          <item row="0" column="2">
           <spacer name="horizontalSpacer_7">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
@@ -67,6 +131,9 @@
          </item>
          <item row="0" column="3">
           <widget class="QLabel" name="labelIdealThreads">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Detected CPU cores:</string>
            </property>
@@ -74,6 +141,9 @@
          </item>
          <item row="0" column="4">
           <spacer name="horizontalSpacer_3">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
@@ -87,6 +157,9 @@
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="labelPriority">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>CPU priority:</string>
            </property>
@@ -94,6 +167,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QComboBox" name="comboBoxPriority">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -104,6 +180,9 @@
          </item>
          <item row="1" column="2">
           <spacer name="horizontalSpacer_8">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
@@ -120,6 +199,9 @@
          </item>
          <item row="1" column="3">
           <widget class="QLabel" name="label_5">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Realtime is not recommended.</string>
            </property>
@@ -127,6 +209,9 @@
          </item>
          <item row="1" column="4">
           <spacer name="horizontalSpacer_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>

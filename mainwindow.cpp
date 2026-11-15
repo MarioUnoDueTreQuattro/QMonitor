@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     actSettings = trayMenuNet->addAction(tr("Settings..."));
     actSettings->setIcon(QIcon::fromTheme("configure"));
     actAbout = trayMenuNet->addAction(tr("About..."));
-    actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32,32));
+    actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
     trayMenuNet->addSeparator();
     quitAction = trayMenuNet->addAction("Exit");
     quitAction->setIcon(QIcon::fromTheme("application-exit"));
@@ -140,7 +140,68 @@ void MainWindow::readSettings()
     {
         QTimer::singleShot(500, this, &MainWindow::hide);
     }
+    bool bTitle = settings->value("HideTitlebar", false).toBool();
+    setWindowFrameless(bTitle);
+    int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
+    setWindowOpacityPercent(iWindowOpacity);
+    bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    setWindowAlwaysOnTop(alwaysOnTop);
     setNetGraphSettings();
+}
+
+bool MainWindow::isWindowAlwaysOnTop() const
+{
+    return windowFlags().testFlag(Qt::WindowStaysOnTopHint);
+}
+
+void MainWindow::setWindowAlwaysOnTop(bool enabled)
+{
+    const bool wasVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    if (enabled)
+        flags |= Qt::WindowStaysOnTopHint;
+    else
+        flags &= ~Qt::WindowStaysOnTopHint;
+    setWindowFlags(flags);
+    // Necessario dopo setWindowFlags()
+    if (wasVisible)
+    {
+        show();
+        raise();
+        //activateWindow();
+    }
+}
+
+void MainWindow::setWindowOpacityPercent(int percent)
+{
+    if (percent < 10) percent = 10;
+    const int clamped = qBound(0, percent, 100);
+    setWindowOpacity(clamped / 100.0);
+}
+
+void MainWindow::setWindowFrameless(bool frameless)
+{
+    const bool bVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    if (frameless)
+    {
+        flags |= Qt::FramelessWindowHint;
+    }
+    else
+    {
+        flags &= ~Qt::FramelessWindowHint;
+        // Facoltativo: ripristina una title bar standard
+        // flags |= Qt::WindowTitleHint |
+        // Qt::WindowSystemMenuHint |
+        // Qt::WindowMinMaxButtonsHint |
+        // Qt::WindowCloseButtonHint;
+    }
+    setWindowFlags(flags);
+    if (bVisible)
+    {
+        show();
+        raise();
+    }
 }
 
 void MainWindow::updateStats()
@@ -327,6 +388,12 @@ void MainWindow::settingsDialogAccepted()
     // ui->horizontalLayout->parentWidget()->adjustSize();
     // ui->horizontalLayout->parentWidget()->setVisible(false);
     // ui->horizontalLayout->parentWidget()->setVisible(true);
+    bool bTitle = settings->value("HideTitlebar", false).toBool();
+    setWindowFrameless(bTitle);
+    int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
+    setWindowOpacityPercent(iWindowOpacity);
+    bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    setWindowAlwaysOnTop(alwaysOnTop);
     setNetGraphSettings();
 }
 

@@ -54,6 +54,10 @@ private:
     void setNetGraphSettings();
     bool m_bShowAvgMax;
     bool m_isQuitting = false;
+    void setWindowFrameless(bool frameless);
+    void setWindowOpacityPercent(int percent);
+    bool isWindowAlwaysOnTop() const;
+    void setWindowAlwaysOnTop(bool enabled);
 };
 
 #endif // MAINWINDOW_H
