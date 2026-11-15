@@ -52,9 +52,10 @@ void SettingsDialog::saveSettings()
     settings->setValue("MonitorNet", ui->checkBoxMonitorNet->isChecked());
     settings->setValue("MonitorCPU", ui->checkBoxMonitorCPU->isChecked());
     settings->setValue("MonitorMemory", ui->checkBoxMonitorMemory->isChecked());
-    settings->setValue("HideTitlebar", ui->checkBoxTitlebar->isChecked());
+    settings->setValue("WindowHideTitlebar", ui->checkBoxTitlebar->isChecked());
     settings->setValue("WindowOpacity", ui->spinBoxWindowOpacity->value());
     settings->setValue("WindowAlwaysOnTop",ui->checkBoxAlwaysOnTop->isChecked());
+    settings->setValue("WindowHideInTaskbar",ui->checkBoxTaskbar->isChecked());
     settings->sync();
 }
 
@@ -98,10 +99,12 @@ void SettingsDialog::loadSettings()
     on_checkBoxMonitorNet_checkStateChanged(ui->checkBoxMonitorNet->checkState());
     on_checkBoxMonitorCPU_checkStateChanged(ui->checkBoxMonitorCPU->checkState());
     on_checkBoxMonitorMemory_checkStateChanged(ui->checkBoxMonitorMemory->checkState());
-    bool bTitle = settings->value("HideTitlebar", false).toBool();
+    bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     ui->checkBoxTitlebar->setChecked(bTitle);
     bool bAlwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
     ui->checkBoxAlwaysOnTop->setChecked(bAlwaysOnTop);
+    bool bHideInTaskbar=settings->value("WindowHideInTaskbar", false).toBool();
+    ui->checkBoxTaskbar->setChecked(bHideInTaskbar);
     int iWindowOpacity=settings->value("WindowOpacity",100).toInt();
     ui->spinBoxWindowOpacity->setValue(iWindowOpacity);
 

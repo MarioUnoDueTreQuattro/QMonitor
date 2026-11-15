@@ -21,6 +21,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 private slots:
     void readSettings();
     void updateStats();
@@ -58,6 +59,8 @@ private:
     void setWindowOpacityPercent(int percent);
     bool isWindowAlwaysOnTop() const;
     void setWindowAlwaysOnTop(bool enabled);
+    void setWindowShowInTaskbar(bool show);
+    void updateX11SkipTaskbar();
 };
 
 #endif // MAINWINDOW_H

@@ -5,6 +5,7 @@ configure_file(version.h.in version.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(X11 REQUIRED)
 
 qt_standard_project_setup()
 
@@ -31,6 +32,7 @@ target_link_libraries(QMonitor
     PRIVATE
         Qt::Core
         Qt::Widgets
+        X11::X11
 )
 target_include_directories(QMonitor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

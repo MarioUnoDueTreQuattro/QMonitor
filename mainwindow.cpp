@@ -7,6 +7,10 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QCloseEvent>
+#include <QWindow>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <cstring>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -126,6 +130,53 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
 }
 
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    // Delay the EWMH state enforcement slightly to ensure Openbox has fully mapped the window
+    QTimer::singleShot(100, this, [this]()
+    {
+        updateX11SkipTaskbar();
+    });
+}
+
+void MainWindow::updateX11SkipTaskbar()
+{
+    if (!isVisible())
+        return;
+    createWinId();
+    if (QWindow *nativeWin = windowHandle())
+    {
+        Display *display = XOpenDisplay(nullptr);
+        if (display)
+        {
+            Atom atomState = XInternAtom(display, "_NET_WM_STATE", False);
+            Atom atomSkip = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", False);
+            if (atomState != None && atomSkip != None)
+            {
+                // Determine target state based on window flags (Qt::Tool means hidden from taskbar)
+                bool showInTaskbar = !windowFlags().testFlag(Qt::Tool);
+                XEvent xev;
+                std::memset(&xev, 0, sizeof(xev));
+                xev.type = ClientMessage;
+                xev.xclient.window = nativeWin->winId();
+                xev.xclient.message_type = atomState;
+                xev.xclient.format = 32;
+                // action: 1 = add property (hide from taskbar), 0 = remove property (show in taskbar)
+                xev.xclient.data.l[0] = showInTaskbar ? 0 : 1;
+                xev.xclient.data.l[1] = atomSkip;
+                xev.xclient.data.l[2] = 0;
+                xev.xclient.data.l[3] = 0;
+                xev.xclient.data.l[4] = 0;
+                XSendEvent(display, DefaultRootWindow(display), False,
+                    SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+                XFlush(display);
+            }
+            XCloseDisplay(display);
+        }
+    }
+}
+
 void MainWindow::readSettings()
 {
     // Ripristina la geometria della finestra
@@ -140,12 +191,14 @@ void MainWindow::readSettings()
     {
         QTimer::singleShot(500, this, &MainWindow::hide);
     }
-    bool bTitle = settings->value("HideTitlebar", false).toBool();
+    bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     setWindowFrameless(bTitle);
     int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
     setWindowOpacityPercent(iWindowOpacity);
     bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
     setWindowAlwaysOnTop(alwaysOnTop);
+    bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
+    setWindowShowInTaskbar(!bHideInTaskbar);
     setNetGraphSettings();
 }
 
@@ -203,6 +256,47 @@ void MainWindow::setWindowFrameless(bool frameless)
         raise();
     }
 }
+
+void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
+{
+    const bool wasVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    // Clear only window type bits
+    flags &= ~Qt::WindowType_Mask;
+    if (showInTaskbar)
+    {
+        flags |= Qt::Window;
+    }
+    else
+    {
+        flags |= Qt::Tool;
+    }
+    setWindowFlags(flags);
+    if (wasVisible)
+    {
+        show();
+        raise();
+    }
+    updateX11SkipTaskbar();
+}
+
+// void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
+// {
+// const bool wasVisible = isVisible();
+// Qt::WindowFlags flags = windowFlags();
+//     // Rimuove il tipo corrente, senza cancellare gli hint
+// flags &= ~Qt::WindowType_Mask;
+// if (showInTaskbar)
+// flags |= Qt::Window;
+// else
+// flags |= Qt::Tool;
+// setWindowFlags(flags);
+// if (wasVisible)
+// {
+// show();
+// raise();
+// }
+// }
 
 void MainWindow::updateStats()
 {
@@ -388,12 +482,15 @@ void MainWindow::settingsDialogAccepted()
     // ui->horizontalLayout->parentWidget()->adjustSize();
     // ui->horizontalLayout->parentWidget()->setVisible(false);
     // ui->horizontalLayout->parentWidget()->setVisible(true);
-    bool bTitle = settings->value("HideTitlebar", false).toBool();
+    bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     setWindowFrameless(bTitle);
     int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
     setWindowOpacityPercent(iWindowOpacity);
     bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
     setWindowAlwaysOnTop(alwaysOnTop);
+    bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
+    setWindowShowInTaskbar(!bHideInTaskbar);
+
     setNetGraphSettings();
 }
 
