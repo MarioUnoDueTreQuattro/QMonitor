@@ -111,7 +111,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (m_isQuitting)
     {
-        if (isVisible())
+        if (true)//(isVisible())
         {
             settings->setValue("geometry", saveGeometry());
             settings->setValue("windowState", saveState());
@@ -135,7 +135,7 @@ void MainWindow::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
     // Delay the EWMH state enforcement slightly to ensure Openbox has fully mapped the window
-    QTimer::singleShot(100, this, [this]()
+    QTimer::singleShot(200, this, [this]()
     {
         updateX11SkipTaskbar();
     });

@@ -2,6 +2,7 @@
 #include "ui_settings_dialog.h"
 #include <QDebug>
 #include <QScreen>
+#include <QTimer>
 #include <QGuiApplication>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
@@ -9,8 +10,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+    setWindowFlags(windowFlags() | Qt::Dialog);
     adjustSize();
-
     //setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle("Settings");
     settings = new QSettings();
@@ -22,6 +23,7 @@ SettingsDialog::~SettingsDialog()
 {
     delete settings;
     delete ui;
+    qDebug() << __PRETTY_FUNCTION__;
 }
 
 void SettingsDialog::setupDialog()
@@ -64,25 +66,31 @@ void SettingsDialog::loadSettings()
 {
     QRect screenGeometry;
     QScreen *screen = QGuiApplication::primaryScreen();
+    QPoint defaultPos;
     if (screen)
     {
         screenGeometry = screen->availableGeometry();
+        defaultPos = QPoint((screenGeometry.width() - width()) / 2,
+                                    (screenGeometry.height() - height()) / 2);
         // oppure usa screen->geometry() a seconda delle necessità
     }
-    int pos_x = (screenGeometry.width() - this->width()) / 2;
-    int pos_y = (screenGeometry.height() - this->height()) / 2;
+    // int pos_x = (screenGeometry.width() - this->width()) / 2;
+    // int pos_y = (screenGeometry.height() - this->height()) / 2;
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-    QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
-    //QScreen *screen = QGuiApplication::screenAt(savedPos);
-    if (screen)
-    {
+    //QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
+    QPoint savedPos = settings->value("SettingsPosition", defaultPos).toPoint();
         move(savedPos);
-    }
-    else
-    {
-        // Se la posizione non è valida, centra la finestra
-        move(QPoint(pos_x, pos_y));
-    }
+    //QScreen *screen = QGuiApplication::screenAt(savedPos);
+    // if (screen)
+    // {
+    //     move(savedPos);
+    //     qDebug() << __PRETTY_FUNCTION__<< " posX:"<<savedPos.x() << " - posY:" <<savedPos.y();
+    // }
+    // else
+    // {
+    //     // Se la posizione non è valida, centra la finestra
+    //     move(QPoint(pos_x, pos_y));
+    // }
     int iTab = settings->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
     bool bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
@@ -110,13 +118,20 @@ void SettingsDialog::loadSettings()
     ui->spinBoxWindowOpacity->setValue(iWindowOpacity);
 }
 
+void SettingsDialog::saveWindowPosition()
+{
+    //settings->setValue("SettingsPosition", pos());
+    settings->setValue("SettingsPosition", geometry().topLeft());
+    qDebug() << __PRETTY_FUNCTION__ << " posX:"<<pos().x() << " - posY:" <<pos().y();
+}
+
 void SettingsDialog::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     if (isVisible() && !isMinimized() && !isMaximized())
     {
-        settings->setValue("SettingsPosition", pos());
+        QTimer::singleShot(200, this, &SettingsDialog::saveWindowPosition);
     }
 }
 
