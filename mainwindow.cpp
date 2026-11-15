@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "settings_dialog.h"
+#include "about.h"
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
@@ -38,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
     trayMenuNet = new QMenu(this);
     showHideAction = trayMenuNet->addAction("Hide/Show");
-    showHideAction->setIcon(QIcon::fromTheme("utilities-system-monitor"));
+    showHideAction->setIcon(QIcon::fromTheme("password-show-on"));
     actPause = trayMenuNet->addAction(tr("Pause"));
     actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
     actPause->setCheckable(true);
@@ -46,9 +47,12 @@ MainWindow::MainWindow(QWidget *parent)
     trayMenuNet->addSeparator();
     actSettings = trayMenuNet->addAction(tr("Settings..."));
     actSettings->setIcon(QIcon::fromTheme("configure"));
+    actAbout = trayMenuNet->addAction(tr("About..."));
+    actAbout->setIcon(QIcon::fromTheme("utilities-system-monitor"));
     trayMenuNet->addSeparator();
     quitAction = trayMenuNet->addAction("Exit");
     quitAction->setIcon(QIcon::fromTheme("application-exit"));
+    connect(actAbout, &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
     connect(actSettings,
         &QAction::triggered,
         this,
@@ -340,4 +344,10 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
             activateWindow();
         }
     }
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    AboutDialog aboutDlg(this);
+    aboutDlg.exec();
 }

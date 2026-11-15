@@ -29,14 +29,15 @@ private slots:
     void on_btnReset_clicked();
     void on_actionSettings_triggered();
     void settingsDialogAccepted();
-
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void toggleMainWindow();
     void quitApplication();
+    void on_actionAbout_triggered();
 private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *m_trayIconNet;
     QMenu *trayMenuNet;
+    QAction *actAbout;
     QAction *actPause;
     QAction *showHideAction;
     QAction *quitAction;

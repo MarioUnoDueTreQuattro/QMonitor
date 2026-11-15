@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 project(QMonitor LANGUAGES CXX)
+set(APP_VERSION "0.1.1")
+configure_file(version.h.in version.h @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
 
@@ -17,6 +20,11 @@ qt_add_executable(QMonitor
     settings_dialog.h
     colorbutton.h colorbutton.cpp
     samplehistory.h samplehistory.cpp
+    version.h.in
+    about.ui
+    about.h
+    about.cpp
+
 )
 
 target_link_libraries(QMonitor

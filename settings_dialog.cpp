@@ -9,7 +9,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
+    //setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle("Settings");
     settings = new QSettings();
     setupDialog();
