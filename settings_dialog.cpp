@@ -9,11 +9,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+    adjustSize();
+
     //setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle("Settings");
     settings = new QSettings();
     setupDialog();
-    adjustSize();
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(saveCurrentTabIndex(int)));
 }
 
@@ -54,8 +55,8 @@ void SettingsDialog::saveSettings()
     settings->setValue("MonitorMemory", ui->checkBoxMonitorMemory->isChecked());
     settings->setValue("WindowHideTitlebar", ui->checkBoxTitlebar->isChecked());
     settings->setValue("WindowOpacity", ui->spinBoxWindowOpacity->value());
-    settings->setValue("WindowAlwaysOnTop",ui->checkBoxAlwaysOnTop->isChecked());
-    settings->setValue("WindowHideInTaskbar",ui->checkBoxTaskbar->isChecked());
+    settings->setValue("WindowAlwaysOnTop", ui->checkBoxAlwaysOnTop->isChecked());
+    settings->setValue("WindowHideInTaskbar", ui->checkBoxTaskbar->isChecked());
     settings->sync();
 }
 
@@ -103,18 +104,20 @@ void SettingsDialog::loadSettings()
     ui->checkBoxTitlebar->setChecked(bTitle);
     bool bAlwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
     ui->checkBoxAlwaysOnTop->setChecked(bAlwaysOnTop);
-    bool bHideInTaskbar=settings->value("WindowHideInTaskbar", false).toBool();
+    bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     ui->checkBoxTaskbar->setChecked(bHideInTaskbar);
-    int iWindowOpacity=settings->value("WindowOpacity",100).toInt();
+    int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
     ui->spinBoxWindowOpacity->setValue(iWindowOpacity);
-
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-    if (isVisible()) settings->setValue("SettingsPosition", pos());
+    if (isVisible() && !isMinimized() && !isMaximized())
+    {
+        settings->setValue("SettingsPosition", pos());
+    }
 }
 
 void SettingsDialog::applyButtonClicked()
@@ -236,6 +239,5 @@ void SettingsDialog::on_checkBoxMonitorMemory_checkStateChanged(const Qt::CheckS
             continue;
         w->setEnabled(enabled);
     }
-
 }
 

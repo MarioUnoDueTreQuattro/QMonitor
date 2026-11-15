@@ -22,6 +22,8 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
 void NetGraphWidget::showContextMenu(const QPoint &pos)
 {
     QMenu menu(this);
+    QAction *actHide = menu.addAction(tr("Hide"));
+    actHide->setIcon(QIcon::fromTheme("password-show-off"));
     QAction *actReset = menu.addAction(tr("Reset"));
     actReset->setIcon(QIcon::fromTheme("system-reboot"));
     QAction *actPause = menu.addAction(tr("Pause"));
@@ -56,6 +58,11 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     {
         emit aboutRequested();
     }
+    else if (selected == actHide)
+    {
+        emit hideRequested();
+    }
+
 }
 
 bool NetGraphWidget::paused() const

@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->horizontalSpacer_2->changeSize(0, 0); // setVisible(false);
     connect(ui->netGraph, &NetGraphWidget::settingsRequested, this, &MainWindow::on_actionSettings_triggered);
     connect(ui->netGraph, &NetGraphWidget::aboutRequested, this, &MainWindow::on_actionAbout_triggered);
+    connect(ui->netGraph, &NetGraphWidget::hideRequested, this, &MainWindow::hide);
     connect(ui->netGraph, &NetGraphWidget::pauseStateChanged, this, &MainWindow::on_pauseChanged);
     m_trayIconNet = new QSystemTrayIcon(this);
     m_trayIconNet->setIcon(this->windowIcon());
@@ -175,14 +176,13 @@ void MainWindow::updateX11SkipTaskbar()
             XCloseDisplay(display);
         }
     }
+    int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
+    setWindowOpacityPercent(100);
+    setWindowOpacityPercent(iWindowOpacity);
 }
 
 void MainWindow::readSettings()
 {
-    // Ripristina la geometria della finestra
-    restoreGeometry(settings->value("geometry").toByteArray());
-    // Ripristina lo stato di barre degli strumenti e pannelli agganciati
-    restoreState(settings->value("windowState").toByteArray());
     m_bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
     ui->labelAvg->setVisible(m_bShowAvgMax);
     ui->labelMax->setVisible(m_bShowAvgMax);
@@ -200,6 +200,11 @@ void MainWindow::readSettings()
     bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     setWindowShowInTaskbar(!bHideInTaskbar);
     setNetGraphSettings();
+    // Ripristina la geometria della finestra
+    restoreGeometry(settings->value("geometry").toByteArray());
+    // Ripristina lo stato di barre degli strumenti e pannelli agganciati
+    restoreState(settings->value("windowState").toByteArray());
+
 }
 
 bool MainWindow::isWindowAlwaysOnTop() const
@@ -490,7 +495,6 @@ void MainWindow::settingsDialogAccepted()
     setWindowAlwaysOnTop(alwaysOnTop);
     bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     setWindowShowInTaskbar(!bHideInTaskbar);
-
     setNetGraphSettings();
 }
 
