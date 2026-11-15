@@ -59,6 +59,7 @@ void SettingsDialog::saveSettings()
     settings->setValue("WindowOpacity", ui->spinBoxWindowOpacity->value());
     settings->setValue("WindowAlwaysOnTop", ui->checkBoxAlwaysOnTop->isChecked());
     settings->setValue("WindowHideInTaskbar", ui->checkBoxTaskbar->isChecked());
+    settings->setValue("WindowBypassWM", ui->checkBoxWindowBypassWM->isChecked());
     settings->sync();
 }
 
@@ -116,6 +117,8 @@ void SettingsDialog::loadSettings()
     ui->checkBoxTaskbar->setChecked(bHideInTaskbar);
     int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
     ui->spinBoxWindowOpacity->setValue(iWindowOpacity);
+    bool bWindowBypassWM = settings->value("WindowBypassWM", false).toBool();
+    ui->checkBoxWindowBypassWM->setChecked(bWindowBypassWM);
 }
 
 void SettingsDialog::saveWindowPosition()

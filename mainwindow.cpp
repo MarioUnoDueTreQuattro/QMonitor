@@ -204,7 +204,6 @@ void MainWindow::readSettings()
     restoreGeometry(settings->value("geometry").toByteArray());
     // Ripristina lo stato di barre degli strumenti e pannelli agganciati
     restoreState(settings->value("windowState").toByteArray());
-
 }
 
 bool MainWindow::isWindowAlwaysOnTop() const
@@ -214,12 +213,26 @@ bool MainWindow::isWindowAlwaysOnTop() const
 
 void MainWindow::setWindowAlwaysOnTop(bool enabled)
 {
+    const bool bWindowBypassWM = settings->value("WindowBypassWM", false).toBool();
     const bool wasVisible = isVisible();
     Qt::WindowFlags flags = windowFlags();
     if (enabled)
+    {
         flags |= Qt::WindowStaysOnTopHint;
+        if (bWindowBypassWM)
+        {
+            flags |= Qt::BypassWindowManagerHint;
+        }
+        else
+        {
+            flags &= ~Qt::BypassWindowManagerHint;
+        }
+    }
     else
+    {
         flags &= ~Qt::WindowStaysOnTopHint;
+        flags &= ~Qt::BypassWindowManagerHint;
+    }
     setWindowFlags(flags);
     // Necessario dopo setWindowFlags()
     if (wasVisible)
@@ -229,14 +242,68 @@ void MainWindow::setWindowAlwaysOnTop(bool enabled)
         //activateWindow();
     }
 }
-
+/*
+void MainWindow::setWindowAlwaysOnTop(bool enabled)
+{
+    const bool wasVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    if (enabled)
+    {
+        flags |= Qt::WindowStaysOnTopHint;
+        // flags |= Qt::BypassWindowManagerHint;
+    }
+    else
+    {
+        flags &= ~Qt::WindowStaysOnTopHint;
+        // flags &= ~Qt::BypassWindowManagerHint;
+    }
+    setWindowFlags(flags);
+    if (wasVisible)
+    {
+        show();
+        raise();
+    }
+    // Enforce EWMH _NET_WM_STATE_ABOVE on X11 / Openbox to stay above full-screen windows
+    if (isVisible())
+    {
+        createWinId();
+        if (QWindow *nativeWin = windowHandle())
+        {
+            Display *display = XOpenDisplay(nullptr);
+            if (display)
+            {
+                Atom atomState = XInternAtom(display, "_NET_WM_STATE", False);
+                Atom atomAbove = XInternAtom(display, "_NET_WM_STATE_ABOVE", False);
+                if (atomState != None && atomAbove != None)
+                {
+                    XEvent xev;
+                    std::memset(&xev, 0, sizeof(xev));
+                    xev.type = ClientMessage;
+                    xev.xclient.window = nativeWin->winId();
+                    xev.xclient.message_type = atomState;
+                    xev.xclient.format = 32;
+                    // action: 1 = add property (always on top), 0 = remove property (normal)
+                    xev.xclient.data.l[0] = enabled ? 1 : 0;
+                    xev.xclient.data.l[1] = atomAbove;
+                    xev.xclient.data.l[2] = 0;
+                    xev.xclient.data.l[3] = 0;
+                    xev.xclient.data.l[4] = 0;
+                    XSendEvent(display, DefaultRootWindow(display), False,
+                        SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+                    XFlush(display);
+                }
+                XCloseDisplay(display);
+            }
+        }
+    }
+}
+*/
 void MainWindow::setWindowOpacityPercent(int percent)
 {
     if (percent < 10) percent = 10;
     const int clamped = qBound(0, percent, 100);
     setWindowOpacity(clamped / 100.0);
 }
-
 void MainWindow::setWindowFrameless(bool frameless)
 {
     const bool bVisible = isVisible();
@@ -261,7 +328,6 @@ void MainWindow::setWindowFrameless(bool frameless)
         raise();
     }
 }
-
 void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 {
     const bool wasVisible = isVisible();
@@ -284,7 +350,6 @@ void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
     }
     updateX11SkipTaskbar();
 }
-
 // void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 // {
 // const bool wasVisible = isVisible();
@@ -302,7 +367,6 @@ void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 // raise();
 // }
 // }
-
 void MainWindow::updateStats()
 {
     bool graphIsPaused = ui->netGraph->paused();
@@ -374,8 +438,7 @@ void MainWindow::updateStats()
         }
     }
 }
-
-bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes)
+bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint64 & txBytes)
 {
     QFile file("/proc/net/dev");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
@@ -398,14 +461,12 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
     }
     return false;
 }
-
 QString MainWindow::formatBytes(qint64 bytes)
 {
     if (bytes < 1024) return QString("%1 B/s").arg(bytes);
     if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
     return QString("%1 MB/s").arg(bytes / (1024.0 * 1024.0), 0, 'f', 1);
 }
-
 void MainWindow::on_btnPause_clicked()
 {
     if (ui->netGraph->paused() == false)
@@ -430,13 +491,11 @@ void MainWindow::on_btnPause_clicked()
         m_lastTx = 0;
     }
 }
-
 void MainWindow::on_pauseChanged()
 {
     if (ui->netGraph->paused() == false) actPause->setText("Pause");
     else actPause->setText("Resume");
 }
-
 void MainWindow::on_btnReset_clicked()
 {
     // Puliamo il grafico
@@ -445,7 +504,6 @@ void MainWindow::on_btnReset_clicked()
     m_lastRx = 0;
     m_lastTx = 0;
 }
-
 void MainWindow::on_actionSettings_triggered()
 {
     SettingsDialog settingsDialog;
@@ -454,7 +512,6 @@ void MainWindow::on_actionSettings_triggered()
     settingsDialog.exec();
     return;
 }
-
 void MainWindow::setNetGraphSettings()
 {
     m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
@@ -476,7 +533,6 @@ void MainWindow::setNetGraphSettings()
     //if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
     ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLines : NetGraphWidget::DrawModeBars);
 }
-
 void MainWindow::settingsDialogAccepted()
 {
     qDebug() << __PRETTY_FUNCTION__;
@@ -497,7 +553,6 @@ void MainWindow::settingsDialogAccepted()
     setWindowShowInTaskbar(!bHideInTaskbar);
     setNetGraphSettings();
 }
-
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if (reason == QSystemTrayIcon::Trigger)
@@ -514,7 +569,6 @@ void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
         }
     }
 }
-
 void MainWindow::on_actionAbout_triggered()
 {
     AboutDialog aboutDlg(this);

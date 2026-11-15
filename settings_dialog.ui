@@ -38,13 +38,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBoxAlwaysOnTop">
-         <property name="text">
-          <string>Window always on top</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QCheckBox" name="checkBoxTitlebar">
          <property name="text">
           <string>Hide window title bar</string>
@@ -55,6 +48,24 @@
         <widget class="QCheckBox" name="checkBoxTaskbar">
          <property name="text">
           <string>Hide window in taskbar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxAlwaysOnTop">
+         <property name="text">
+          <string>Window always on top</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxWindowBypassWM">
+         <property name="toolTip">
+          <string>Removes window decorations and taskbar icon;
+makes 'Always on top' work over fullscreen videos.</string>
+         </property>
+         <property name="text">
+          <string>Bypass window manager</string>
          </property>
         </widget>
        </item>
