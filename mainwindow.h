@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include "netgraphwidget.h"
+#include "samplehistory.h"
+#include "cpureader.h"
 #include <QMainWindow>
 #include <QTimer>
 #include <QSettings>
@@ -32,17 +34,22 @@ private slots:
     void on_pauseChanged();
     void on_btnReset_clicked();
     void on_actionSettings_triggered();
+    void on_actionAbout_triggered();
     void settingsDialogAccepted();
-    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void trayIconNetActivated(QSystemTrayIcon::ActivationReason reason);
     void toggleMainWindow();
     void quitApplication();
-    void on_actionAbout_triggered();
 private:
     Ui::MainWindow *ui;
     QPoint m_dragPosition;
     QPoint m_dragStartPosition;
     bool m_isDragging = false;
     QSystemTrayIcon *m_trayIconNet;
+    QSystemTrayIcon *m_trayIconCPU;
+    QSystemTrayIcon *m_trayIconRAM;
+    QVector<QColor> *colors_net;
+    QVector<QColor> *colors_cpu;
+    QVector<QColor> *colors_ram;
     QMenu *trayMenuNet;
     QAction *actAbout;
     QAction *actPause;
@@ -56,6 +63,7 @@ private:
     qint64 m_lastTx;
     qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
+    QString formatBytesNet(qint64 bytes);
     QString formatBytes(qint64 bytes);
     int m_updateIntervalNet;
     void setNetGraphSettings();
@@ -67,6 +75,14 @@ private:
     void setWindowAlwaysOnTop(bool enabled);
     void setWindowShowInTaskbar(bool show);
     void updateX11SkipTaskbar();
+    SampleHistory *m_networkHistory;
+    SampleHistory *m_cpuHistory;
+    SampleHistory *m_memoryHistory;
+    CpuReader m_cpuReader;
+    void sampleCpu();
+    void sampleMemory();
+    qint64 m_memoryScaleBytes;
+    void readColors();
 };
 
 #endif // MAINWINDOW_H

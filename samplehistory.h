@@ -15,17 +15,22 @@ public:
     explicit SampleHistory(int seriesCount, QObject *parent = nullptr);
 
     // 'values' must contain exactly seriesCount() values, in series order
-    void addSample(const QVector<double> &values);
+    void addSample(const QVector<qint64> &values);
+    qint64 valueAt(int seriesIndex, int sampleIndex) const;
+    qint64 latestValue(int seriesIndex) const;
+    qint64 maxValueInLast(int visibleSamples, qint64 minimumValue) const;
+
+    // void addSample(const QVector<double> &values);
     void clear();
     void setMaxSamples(int newMaxSamples);
 
     int seriesCount() const;
     int sampleCount() const;
-    double valueAt(int seriesIndex, int sampleIndex) const;   // sampleIndex 0 = oldest
+    // double valueAt(int seriesIndex, int sampleIndex) const;   // sampleIndex 0 = oldest
 
     // Highest value among all series in the newest 'visibleSamples' samples,
     // never lower than 'minimumValue' (avoids zooming in on noise)
-    double maxValueInLast(int visibleSamples, double minimumValue) const;
+    // double maxValueInLast(int visibleSamples, double minimumValue) const;
 
 signals:
     void historyChanged();   // emitted once per new sample, and after clear()
@@ -34,8 +39,8 @@ private:
     void trimToMaxSamples();
 
     // One vector per series: drawing a series reads a single contiguous vector
-    QVector< QVector<double> > m_series;
-    int m_maxSamples;
+QVector< QVector<qint64> > m_series;
+int m_maxSamples;
 };
 
 #endif // SAMPLEHISTORY_H

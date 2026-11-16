@@ -23,7 +23,7 @@ SettingsDialog::~SettingsDialog()
 {
     delete settings;
     delete ui;
-    qDebug() << __PRETTY_FUNCTION__;
+    // qDebug() << __PRETTY_FUNCTION__;
 }
 
 void SettingsDialog::setupDialog()
@@ -125,7 +125,7 @@ void SettingsDialog::saveWindowPosition()
 {
     //settings->setValue("SettingsPosition", pos());
     settings->setValue("SettingsPosition", geometry().topLeft());
-    qDebug() << __PRETTY_FUNCTION__ << " posX:" << pos().x() << " - posY:" << pos().y();
+    // qDebug() << __PRETTY_FUNCTION__ << " posX:" << pos().x() << " - posY:" << pos().y();
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
@@ -140,13 +140,13 @@ void SettingsDialog::moveEvent(QMoveEvent *event)
 
 void SettingsDialog::applyButtonClicked()
 {
-    qDebug() << __PRETTY_FUNCTION__ ;
+    // qDebug() << __PRETTY_FUNCTION__ ;
     // on_buttonBox_clicked(btnApply);
 }
 
 void SettingsDialog::on_SettingsDialog_accepted()
 {
-    qDebug() << __PRETTY_FUNCTION__ ;
+    // qDebug() << __PRETTY_FUNCTION__ ;
     saveSettings();
 }
 
@@ -157,7 +157,7 @@ void SettingsDialog::saveCurrentTabIndex(int)
 
 void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-    qDebug() << __PRETTY_FUNCTION__ << button->objectName();
+    // qDebug() << __PRETTY_FUNCTION__ << button->objectName();
     QDialogButtonBox *buttonBox = qobject_cast<QDialogButtonBox *>(sender());
     if (!buttonBox) return;
     QDialogButtonBox::ButtonRole role = buttonBox->buttonRole(button);

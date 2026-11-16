@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "settings_dialog.h"
 #include "about.h"
+#include "memoryreader.h"
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
@@ -19,6 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastRx(0)
     , m_lastTx(0)
 {
+    m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
+    m_cpuHistory = new SampleHistory(1, this);   // total load (%)
+    m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
+    colors_net = new QVector<QColor>();
+    colors_cpu = new QVector<QColor>();
+    colors_ram = new QVector<QColor>();
     ui->setupUi(this);
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
@@ -42,7 +49,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->netGraph, &NetGraphWidget::pauseStateChanged, this, &MainWindow::on_pauseChanged);
     m_trayIconNet = new QSystemTrayIcon(this);
     m_trayIconNet->setIcon(this->windowIcon());
-    connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
+    m_trayIconCPU = new QSystemTrayIcon(this);
+    m_trayIconCPU->setIcon(this->windowIcon());
+    m_trayIconRAM = new QSystemTrayIcon(this);
+    m_trayIconRAM->setIcon(this->windowIcon());
+    connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
     trayMenuNet = new QMenu(this);
     showHideAction = trayMenuNet->addAction("Hide/Show");
     showHideAction->setIcon(QIcon::fromTheme("password-show-on"));
@@ -77,6 +88,8 @@ MainWindow::MainWindow(QWidget *parent)
         &MainWindow::quitApplication);
     m_trayIconNet->setContextMenu(trayMenuNet);
     m_trayIconNet->show();
+    m_trayIconCPU->show();
+    m_trayIconRAM->show();
 }
 
 MainWindow::~MainWindow()
@@ -133,7 +146,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         m_dragPosition = event->position().toPoint();
         m_dragStartPosition = event->globalPosition().toPoint();
         m_isDragging = false;
@@ -144,16 +158,19 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    if (event->buttons() & Qt::LeftButton) {
-        if (!m_isDragging) {
+    if (event->buttons() & Qt::LeftButton)
+    {
+        if (!m_isDragging)
+        {
             // Check if movement exceeds 4 pixels threshold
             QPoint currentGlobal = event->globalPosition().toPoint();
-            if ((currentGlobal - m_dragStartPosition).manhattanLength() > 4) {
+            if ((currentGlobal - m_dragStartPosition).manhattanLength() > 4)
+            {
                 m_isDragging = true;
             }
         }
-
-        if (m_isDragging) {
+        if (m_isDragging)
+        {
             move(event->globalPosition().toPoint() - m_dragPosition);
             event->accept();
         }
@@ -163,7 +180,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         m_isDragging = false;
         event->accept();
     }
@@ -406,6 +424,53 @@ void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 // raise();
 // }
 // }
+
+void MainWindow::sampleCpu()
+{
+    QVector<qint64> values;
+    values << m_cpuReader.readLoadPercent();
+    m_cpuHistory->addSample(values);   // scale is fixed at 100
+    //qDebug() << __PRETTY_FUNCTION__ << values;
+}
+
+void MainWindow::sampleMemory()
+{
+    MemorySnapshot snapshot = MemoryReader::read(false);
+    // Scale is stored as a member, read by the widget and by the tray renderer
+    m_memoryScaleBytes = snapshot.maxTotalBytes;
+    QVector<qint64> values;
+    values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
+    m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
+}
+
+void MainWindow::readColors()
+{
+    colors_cpu->clear();
+    colors_ram->clear();
+    QColor newColor;
+    QColor defaultColor = QColor(255, 0, 0, 255);
+    defaultColor = QColor(settings->value("pushButtonCPU", defaultColor.name()).toString());
+    int iAlplha = settings->value("CPUOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_cpu->append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorRAM", defaultColor.name()).toString());
+    iAlplha = settings->value("RAMOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_ram->append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorSwap", defaultColor.name()).toString());
+    iAlplha = settings->value("SwapOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_ram->append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorZram", defaultColor.name()).toString());
+    iAlplha = settings->value("ZRamOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_ram->append(defaultColor);
+}
+
 void MainWindow::updateStats()
 {
     bool graphIsPaused = ui->netGraph->paused();
@@ -427,8 +492,8 @@ void MainWindow::updateStats()
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
-            QString s_rxSpeed = formatBytes(rxSpeed);
-            QString s_txSpeed = formatBytes(txSpeed);
+            QString s_rxSpeed = formatBytesNet(rxSpeed);
+            QString s_txSpeed = formatBytesNet(txSpeed);
             // 1. Aggiornamento della velocità istantanea
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
@@ -454,19 +519,28 @@ void MainWindow::updateStats()
                     if (ui->labelAvg)
                     {
                         ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
-                            .arg(formatBytes(ui->netGraph->getAvgRx()))
-                            .arg(formatBytes(ui->netGraph->getAvgTx())));
+                            .arg(formatBytesNet(ui->netGraph->getAvgRx()))
+                            .arg(formatBytesNet(ui->netGraph->getAvgTx())));
                     }
                     // 3. Aggiornamento della velocità massima (picco storico)
                     if (ui->labelMax)
                     {
                         ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
-                            .arg(formatBytes(ui->netGraph->getMaxRx()))
-                            .arg(formatBytes(ui->netGraph->getMaxTx())));
+                            .arg(formatBytesNet(ui->netGraph->getMaxRx()))
+                            .arg(formatBytesNet(ui->netGraph->getMaxTx())));
                     }
                 }
             }
             m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(24));
+            sampleCpu();
+            m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, 24));
+            m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
+            sampleMemory();
+            m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, 24));
+            QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
+            sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(1))));
+            sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(2))));
+            m_trayIconRAM->setToolTip(sMemory);
         }
         else
         {
@@ -477,6 +551,7 @@ void MainWindow::updateStats()
         }
     }
 }
+
 bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint64 & txBytes)
 {
     QFile file("/proc/net/dev");
@@ -500,12 +575,18 @@ bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint6
     }
     return false;
 }
-QString MainWindow::formatBytes(qint64 bytes)
+QString MainWindow::formatBytesNet(qint64 bytes)
 {
     if (bytes < 1024) return QString("%1 B/s").arg(bytes);
     if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
     return QString("%1 MB/s").arg(bytes / (1024.0 * 1024.0), 0, 'f', 1);
 }
+
+QString MainWindow::formatBytes(qint64 bytes)
+{
+    return QString("%1 MB").arg(bytes / (1024.0 * 1024.0), 0, 'f', 0);
+}
+
 void MainWindow::on_btnPause_clicked()
 {
     if (ui->netGraph->paused() == false)
@@ -571,6 +652,7 @@ void MainWindow::setNetGraphSettings()
     bool bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
     //if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
     ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLines : NetGraphWidget::DrawModeBars);
+    readColors();
 }
 void MainWindow::settingsDialogAccepted()
 {
@@ -592,7 +674,7 @@ void MainWindow::settingsDialogAccepted()
     setWindowShowInTaskbar(!bHideInTaskbar);
     setNetGraphSettings();
 }
-void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if (reason == QSystemTrayIcon::Trigger)
     {

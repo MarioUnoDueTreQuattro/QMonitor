@@ -158,6 +158,41 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
     painter.drawPath(path);
 }
 
+// graphpainter.cpp
+void NetGraphWidget::paintBars(QPainter &painter, const QRect &graphRect,
+                             const SampleHistory *history,
+                             const QVector<QColor> *seriesColors, double maxValue)
+{
+    if (maxValue <= 0.0 || history->sampleCount() == 0)
+        return;
+
+    const int bottom = graphRect.bottom();
+    const int samplesToDraw = qMin(history->sampleCount(), graphRect.width());
+    const int firstSample = history->sampleCount() - samplesToDraw;
+    const int firstX = graphRect.right() - samplesToDraw + 1;
+
+    painter.setRenderHint(QPainter::Antialiasing, false);
+
+    for (int s = 0; s < history->seriesCount() && s < seriesColors->size(); ++s)
+    {
+        QVector<QLine> lines;
+        lines.reserve(samplesToDraw);
+
+        for (int i = 0; i < samplesToDraw; ++i)
+        {
+            double value = history->valueAt(s, firstSample + i);
+            int barHeight = static_cast<int>(value / maxValue * graphRect.height());
+            barHeight = qBound(0, barHeight, graphRect.height());
+
+            int x = firstX + i;
+            lines.append(QLine(x, bottom, x, bottom - barHeight));
+        }
+
+        painter.setPen(QPen(seriesColors->at(s), 1));
+        painter.drawLines(lines);
+    }
+}
+
 void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, bool isTray)
 {
     if (m_maxVal <= 0 || m_history.isEmpty())
@@ -198,6 +233,17 @@ QPixmap NetGraphWidget::renderTrayIcon(int size)
         drawSeriesBars(painter, m_penRx, true, graphRect, true);
         drawSeriesBars(painter, m_penTx, false, graphRect, true);
     }
+    return pixmap;
+}
+
+QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory *history,
+                                     QVector<QColor> *colors, double maxValue, int size)
+{
+    QPixmap pixmap(size, size);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    paintBars(painter, QRect(0, 0, size, size), history, colors, maxValue);
     return pixmap;
 }
 

@@ -25,6 +25,8 @@ qt_add_executable(QMonitor
     about.ui
     about.h
     about.cpp
+    memoryreader.h memoryreader.cpp
+    cpureader.h cpureader.cpp
 
 )
 

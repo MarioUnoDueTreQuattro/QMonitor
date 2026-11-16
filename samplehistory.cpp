@@ -3,18 +3,16 @@
 SampleHistory::SampleHistory(int seriesCount, QObject *parent)
     : QObject(parent),
       m_series(seriesCount),
-      m_maxSamples(4096)
+      m_maxSamples(64)
 {
 }
 
-void SampleHistory::addSample(const QVector<double> &values)
+void SampleHistory::addSample(const QVector<qint64> &values)
 {
     if (values.size() != m_series.size())
         return;   // wrong number of values: ignore instead of corrupting the history
-
     for (int i = 0; i < m_series.size(); ++i)
         m_series[i].append(values.at(i));
-
     trimToMaxSamples();
     emit historyChanged();
 }
@@ -23,7 +21,6 @@ void SampleHistory::clear()
 {
     for (int i = 0; i < m_series.size(); ++i)
         m_series[i].clear();
-
     emit historyChanged();
 }
 
@@ -31,7 +28,6 @@ void SampleHistory::setMaxSamples(int newMaxSamples)
 {
     if (newMaxSamples < 1)
         return;
-
     m_maxSamples = newMaxSamples;
     trimToMaxSamples();
 }
@@ -57,16 +53,20 @@ int SampleHistory::sampleCount() const
     return m_series.isEmpty() ? 0 : m_series.at(0).size();
 }
 
-double SampleHistory::valueAt(int seriesIndex, int sampleIndex) const
+qint64 SampleHistory::valueAt(int seriesIndex, int sampleIndex) const
 {
     return m_series.at(seriesIndex).at(sampleIndex);
 }
 
-double SampleHistory::maxValueInLast(int visibleSamples, double minimumValue) const
+qint64 SampleHistory::latestValue(int seriesIndex) const
 {
-    double maxValue = minimumValue;
-    int firstIndex = qMax(0, sampleCount() - visibleSamples);
+    return m_series.at(seriesIndex).at(sampleCount() - 1);
+}
 
+qint64 SampleHistory::maxValueInLast(int visibleSamples, qint64 minimumValue) const
+{
+    qint64 maxValue = minimumValue;
+    int firstIndex = qMax(0, sampleCount() - visibleSamples);
     for (int s = 0; s < m_series.size(); ++s)
     {
         for (int i = firstIndex; i < m_series.at(s).size(); ++i)

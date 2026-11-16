@@ -1,6 +1,7 @@
 #ifndef NETGRAPHWIDGET_H
 #define NETGRAPHWIDGET_H
 
+#include "samplehistory.h"
 #include <QWidget>
 #include <QVector>
 #include <QDateTime>
@@ -18,6 +19,7 @@ public:
     void setUploadColor(const QColor &newColor);
     void setDrawMode(int newMode);
     QPixmap renderTrayIcon(int size);
+    QPixmap renderTrayPixmap(SampleHistory *history,  QVector<QColor> *colors, double maxValue, int size);
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
@@ -35,6 +37,9 @@ private:
     DrawMode m_drawMode = DrawModeLines;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
         const QRect &graphRect, bool isTray);
+    void paintBars(QPainter &painter, const QRect &graphRect,
+                          const SampleHistory *history,
+                          const QVector<QColor> *seriesColors, double maxValue);
     void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
     {
