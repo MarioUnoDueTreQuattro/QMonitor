@@ -3,6 +3,7 @@
 #include "settings_dialog.h"
 #include "about.h"
 #include "memoryreader.h"
+#include <QMessageBox>
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
@@ -30,11 +31,16 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
+    m_MonitorNet = settings->value("MonitorNet", true).toBool();
+    m_MonitorCPU = settings->value("MonitorCPU", true).toBool();
+    m_MonitorMemory = settings->value("MonitorMemory", true).toBool();
     m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
-    m_timer = new QTimer(this);
-    m_timer->setTimerType(Qt::PreciseTimer);
-    connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStats);
-    m_timer->start(m_updateIntervalNet);
+    m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();
+    m_updateIntervalRAM = settings->value("UpdateIntervalRAM", 2000).toInt();
+    m_timerNet = new QTimer(this);
+    m_timerNet->setTimerType(Qt::PreciseTimer);
+    connect(m_timerNet, &QTimer::timeout, this, &MainWindow::updateStats);
+    m_timerNet->start(m_updateIntervalNet);
     ui->labelAvg->setText("");
     ui->labelMax->setText("");
     ui->labelSpeed->setText("");
@@ -73,21 +79,21 @@ MainWindow::MainWindow(QWidget *parent)
     // quitAction->setIcon(QIcon::fromTheme("application-exit"));
     // connect(actAbout, &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
     // connect(actSettings,
-    //     &QAction::triggered,
-    //     this,
-    //     &MainWindow::on_actionSettings_triggered);
+    // &QAction::triggered,
+    // this,
+    // &MainWindow::on_actionSettings_triggered);
     // connect(showHideAction,
-    //     &QAction::triggered,
-    //     this,
-    //     &MainWindow::toggleMainWindow);
+    // &QAction::triggered,
+    // this,
+    // &MainWindow::toggleMainWindow);
     // connect(actPause,
-    //     &QAction::triggered,
-    //     this,
-    //     &MainWindow::on_btnPause_clicked);
+    // &QAction::triggered,
+    // this,
+    // &MainWindow::on_btnPause_clicked);
     // connect(quitAction,
-    //     &QAction::triggered,
-    //     this,
-    //     &MainWindow::quitApplication);
+    // &QAction::triggered,
+    // this,
+    // &MainWindow::quitApplication);
     // m_trayIconNet->setContextMenu(trayMenuNet);
     // m_trayIconCPU->setContextMenu(trayMenuNet);
     // m_trayIconRAM->setContextMenu(trayMenuNet);
@@ -103,30 +109,30 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+bool MainWindow::isAnyGraphEnabled() const
+{
+    return m_MonitorNet || m_MonitorCPU || m_MonitorMemory;
+}
+
 void MainWindow::createTrayActions()
 {
     m_actToggleWindow = new QAction(tr("Hide/Show"), this);
     m_actToggleWindow->setIcon(QIcon::fromTheme("password-show-on"));
-
     m_actPause = new QAction(tr("Pause"), this);
     m_actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
     m_actPause->setCheckable(true);
     m_actPause->setChecked(false);
-
     m_actSettings = new QAction(tr("Settings..."), this);
     m_actSettings->setIcon(QIcon::fromTheme("configure"));
-
     m_actAbout = new QAction(tr("About..."), this);
     m_actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
-
     m_actQuit = new QAction(tr("Exit"), this);
     m_actQuit->setIcon(QIcon::fromTheme("application-exit"));
-
     connect(m_actToggleWindow, &QAction::triggered, this, &MainWindow::toggleMainWindow);
-    connect(m_actPause,        &QAction::triggered, this, &MainWindow::on_btnPause_clicked);
-    connect(m_actSettings,     &QAction::triggered, this, &MainWindow::on_actionSettings_triggered);
-    connect(m_actAbout,        &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
-    connect(m_actQuit,         &QAction::triggered, this, &MainWindow::quitApplication);
+    connect(m_actPause, &QAction::triggered, this, &MainWindow::on_btnPause_clicked);
+    connect(m_actSettings, &QAction::triggered, this, &MainWindow::on_actionSettings_triggered);
+    connect(m_actAbout, &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
+    connect(m_actQuit, &QAction::triggered, this, &MainWindow::quitApplication);
 }
 
 QMenu *MainWindow::createTrayMenu()
@@ -148,26 +154,32 @@ QMenu *MainWindow::createTrayMenu()
 void MainWindow::createTrayIcons()
 {
     createTrayActions();
-
     m_trayIconNet = new QSystemTrayIcon(this);
     m_trayIconCPU = new QSystemTrayIcon(this);
     m_trayIconRAM = new QSystemTrayIcon(this);
-
     m_trayIconNet->setIcon(windowIcon());
     m_trayIconCPU->setIcon(windowIcon());
     m_trayIconRAM->setIcon(windowIcon());
-
     connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
     connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
     connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-
     m_trayIconNet->setContextMenu(createTrayMenu());
     m_trayIconCPU->setContextMenu(createTrayMenu());
     m_trayIconRAM->setContextMenu(createTrayMenu());
-
-    m_trayIconNet->show();
-    m_trayIconCPU->show();
-    m_trayIconRAM->show();
+    if (m_MonitorNet) m_trayIconNet->show();
+    if (m_MonitorCPU) m_trayIconCPU->show();
+    if (m_MonitorMemory) m_trayIconRAM->show();
+    if (!isAnyGraphEnabled())
+    {
+        QMessageBox messageBox(this);
+        messageBox.setIcon(QMessageBox::Warning);
+        messageBox.setWindowTitle(tr("No graph enabled"));
+        messageBox.setText(tr("At least one graph must be enabled."));
+        messageBox.setInformativeText(tr("Select Network, CPU or Memory to continue."));
+        messageBox.setStandardButtons(QMessageBox::Ok);
+        messageBox.exec();
+        on_actionSettings_triggered();
+    }
 }
 
 void MainWindow::toggleMainWindow()
@@ -709,7 +721,9 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::setNetGraphSettings()
 {
     m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
-    m_timer->setInterval(m_updateIntervalNet);
+    m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();
+    m_updateIntervalRAM = settings->value("UpdateIntervalRAM", 2000).toInt();
+    m_timerNet->setInterval(m_updateIntervalNet);
     ui->netGraph->setUpdateIntervalNet(m_updateIntervalNet);
     QColor defaultColor = QColor(0, 192, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
@@ -746,6 +760,23 @@ void MainWindow::settingsDialogAccepted()
     setWindowAlwaysOnTop(alwaysOnTop);
     bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     setWindowShowInTaskbar(!bHideInTaskbar);
+    m_MonitorNet = settings->value("MonitorNet", true).toBool();
+    m_MonitorCPU = settings->value("MonitorCPU", true).toBool();
+    m_MonitorMemory = settings->value("MonitorMemory", true).toBool();
+    if (m_MonitorNet) m_trayIconNet->show(); else m_trayIconNet->hide();
+    if (m_MonitorCPU) m_trayIconCPU->show(); else m_trayIconCPU->hide();
+    if (m_MonitorMemory) m_trayIconRAM->show(); else m_trayIconRAM->hide();
+    if (!isAnyGraphEnabled())
+    {
+        QMessageBox messageBox(this);
+        messageBox.setIcon(QMessageBox::Warning);
+        messageBox.setWindowTitle(tr("No graph enabled"));
+        messageBox.setText(tr("At least one graph must be enabled."));
+        messageBox.setInformativeText(tr("Select Network, CPU or Memory to continue."));
+        messageBox.setStandardButtons(QMessageBox::Ok);
+        messageBox.exec();
+        on_actionSettings_triggered();
+    }
     setNetGraphSettings();
 }
 void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)

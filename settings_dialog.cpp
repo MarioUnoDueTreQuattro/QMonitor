@@ -52,6 +52,8 @@ void SettingsDialog::saveSettings()
     saveColors();
     settings->setValue("DrawModeLinesNet", ui->radioButtonDrawModeLines->isChecked());
     settings->setValue("UpdateIntervalNet", ui->spinBoxInterval->value());
+    settings->setValue("UpdateIntervalCPU", ui->spinBoxIntervaCPU->value());
+    settings->setValue("UpdateIntervalRAM", ui->spinBoxIntervalMemory->value());
     settings->setValue("MonitorNet", ui->checkBoxMonitorNet->isChecked());
     settings->setValue("MonitorCPU", ui->checkBoxMonitorCPU->isChecked());
     settings->setValue("MonitorMemory", ui->checkBoxMonitorMemory->isChecked());
@@ -103,6 +105,8 @@ void SettingsDialog::loadSettings()
     if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
     else ui->radioButtonDrawModeBars->setChecked(true);
     ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet", 2000).toInt());
+    ui->spinBoxIntervaCPU->setValue(settings->value("UpdateIntervalCPU", 2000).toInt());
+    ui->spinBoxIntervalMemory->setValue(settings->value("UpdateIntervalRAM", 2000).toInt());
     ui->checkBoxMonitorNet->setChecked(settings->value("MonitorNet", true).toBool());
     ui->checkBoxMonitorCPU->setChecked(settings->value("MonitorCPU", true).toBool());
     ui->checkBoxMonitorMemory->setChecked(settings->value("MonitorMemory", true).toBool());

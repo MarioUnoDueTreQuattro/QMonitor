@@ -41,6 +41,7 @@ private slots:
     void quitApplication();
 private:
     Ui::MainWindow *ui;
+    bool isAnyGraphEnabled() const;
     QPoint m_dragPosition;
     QPoint m_dragStartPosition;
     bool m_isDragging = false;
@@ -56,14 +57,12 @@ private:
     // QAction *showHideAction;
     // QAction *quitAction;
     // QAction *actSettings;
-
     QAction *m_actToggleWindow;
     QAction *m_actPause;
     QAction *m_actSettings;
     QAction *m_actAbout;
     QAction *m_actQuit;
-
-    QTimer *m_timer;
+    QTimer *m_timerNet;
     QSettings *settings;
     QString m_iface;
     qint64 m_lastRx;
@@ -72,7 +71,12 @@ private:
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
     QString formatBytesNet(qint64 bytes);
     QString formatBytes(qint64 bytes);
+    bool m_MonitorNet;
+    bool m_MonitorCPU;
+    bool m_MonitorMemory;
     int m_updateIntervalNet;
+    int m_updateIntervalCPU;
+    int m_updateIntervalRAM;
     void setNetGraphSettings();
     bool m_bShowAvgMax;
     bool m_isQuitting = false;
