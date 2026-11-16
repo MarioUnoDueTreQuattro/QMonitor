@@ -54,48 +54,120 @@ MainWindow::MainWindow(QWidget *parent)
     m_trayIconRAM = new QSystemTrayIcon(this);
     m_trayIconRAM->setIcon(this->windowIcon());
     connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    trayMenuNet = new QMenu(this);
-    showHideAction = trayMenuNet->addAction("Hide/Show");
-    showHideAction->setIcon(QIcon::fromTheme("password-show-on"));
-    actPause = trayMenuNet->addAction(tr("Pause"));
-    actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
-    actPause->setCheckable(true);
-    actPause->setChecked(false);
-    trayMenuNet->addSeparator();
-    actSettings = trayMenuNet->addAction(tr("Settings..."));
-    actSettings->setIcon(QIcon::fromTheme("configure"));
-    actAbout = trayMenuNet->addAction(tr("About..."));
-    actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
-    trayMenuNet->addSeparator();
-    quitAction = trayMenuNet->addAction("Exit");
-    quitAction->setIcon(QIcon::fromTheme("application-exit"));
-    connect(actAbout, &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
-    connect(actSettings,
-        &QAction::triggered,
-        this,
-        &MainWindow::on_actionSettings_triggered);
-    connect(showHideAction,
-        &QAction::triggered,
-        this,
-        &MainWindow::toggleMainWindow);
-    connect(actPause,
-        &QAction::triggered,
-        this,
-        &MainWindow::on_btnPause_clicked);
-    connect(quitAction,
-        &QAction::triggered,
-        this,
-        &MainWindow::quitApplication);
-    m_trayIconNet->setContextMenu(trayMenuNet);
-    m_trayIconNet->show();
-    m_trayIconCPU->show();
-    m_trayIconRAM->show();
+    connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    // trayMenuNet = new QMenu(this);
+    // showHideAction = trayMenuNet->addAction("Hide/Show");
+    // showHideAction->setIcon(QIcon::fromTheme("password-show-on"));
+    // actPause = trayMenuNet->addAction(tr("Pause"));
+    // actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
+    // actPause->setCheckable(true);
+    // actPause->setChecked(false);
+    // trayMenuNet->addSeparator();
+    // actSettings = trayMenuNet->addAction(tr("Settings..."));
+    // actSettings->setIcon(QIcon::fromTheme("configure"));
+    // actAbout = trayMenuNet->addAction(tr("About..."));
+    // actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
+    // trayMenuNet->addSeparator();
+    // quitAction = trayMenuNet->addAction("Exit");
+    // quitAction->setIcon(QIcon::fromTheme("application-exit"));
+    // connect(actAbout, &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
+    // connect(actSettings,
+    //     &QAction::triggered,
+    //     this,
+    //     &MainWindow::on_actionSettings_triggered);
+    // connect(showHideAction,
+    //     &QAction::triggered,
+    //     this,
+    //     &MainWindow::toggleMainWindow);
+    // connect(actPause,
+    //     &QAction::triggered,
+    //     this,
+    //     &MainWindow::on_btnPause_clicked);
+    // connect(quitAction,
+    //     &QAction::triggered,
+    //     this,
+    //     &MainWindow::quitApplication);
+    // m_trayIconNet->setContextMenu(trayMenuNet);
+    // m_trayIconCPU->setContextMenu(trayMenuNet);
+    // m_trayIconRAM->setContextMenu(trayMenuNet);
+    // m_trayIconNet->show();
+    // m_trayIconCPU->show();
+    // m_trayIconRAM->show();
+    createTrayIcons();
 }
 
 MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
+}
+
+void MainWindow::createTrayActions()
+{
+    m_actToggleWindow = new QAction(tr("Hide/Show"), this);
+    m_actToggleWindow->setIcon(QIcon::fromTheme("password-show-on"));
+
+    m_actPause = new QAction(tr("Pause"), this);
+    m_actPause->setIcon(QIcon::fromTheme("media-playback-pause"));
+    m_actPause->setCheckable(true);
+    m_actPause->setChecked(false);
+
+    m_actSettings = new QAction(tr("Settings..."), this);
+    m_actSettings->setIcon(QIcon::fromTheme("configure"));
+
+    m_actAbout = new QAction(tr("About..."), this);
+    m_actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
+
+    m_actQuit = new QAction(tr("Exit"), this);
+    m_actQuit->setIcon(QIcon::fromTheme("application-exit"));
+
+    connect(m_actToggleWindow, &QAction::triggered, this, &MainWindow::toggleMainWindow);
+    connect(m_actPause,        &QAction::triggered, this, &MainWindow::on_btnPause_clicked);
+    connect(m_actSettings,     &QAction::triggered, this, &MainWindow::on_actionSettings_triggered);
+    connect(m_actAbout,        &QAction::triggered, this, &MainWindow::on_actionAbout_triggered);
+    connect(m_actQuit,         &QAction::triggered, this, &MainWindow::quitApplication);
+}
+
+QMenu *MainWindow::createTrayMenu()
+{
+    // Each tray icon needs its own QMenu: sharing one menu between several
+    // QSystemTrayIcon objects breaks the D-Bus menu export (No id for action).
+    // The QActions themselves can safely be shared.
+    QMenu *menu = new QMenu(this);
+    menu->addAction(m_actToggleWindow);
+    menu->addAction(m_actPause);
+    menu->addSeparator();
+    menu->addAction(m_actSettings);
+    menu->addAction(m_actAbout);
+    menu->addSeparator();
+    menu->addAction(m_actQuit);
+    return menu;
+}
+
+void MainWindow::createTrayIcons()
+{
+    createTrayActions();
+
+    m_trayIconNet = new QSystemTrayIcon(this);
+    m_trayIconCPU = new QSystemTrayIcon(this);
+    m_trayIconRAM = new QSystemTrayIcon(this);
+
+    m_trayIconNet->setIcon(windowIcon());
+    m_trayIconCPU->setIcon(windowIcon());
+    m_trayIconRAM->setIcon(windowIcon());
+
+    connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+
+    m_trayIconNet->setContextMenu(createTrayMenu());
+    m_trayIconCPU->setContextMenu(createTrayMenu());
+    m_trayIconRAM->setContextMenu(createTrayMenu());
+
+    m_trayIconNet->show();
+    m_trayIconCPU->show();
+    m_trayIconRAM->show();
 }
 
 void MainWindow::toggleMainWindow()
@@ -595,27 +667,29 @@ void MainWindow::on_btnPause_clicked()
         //m_timer->stop();
         ui->btnPause->setText("Resume");
         ui->netGraph->setPaused(true);
-        actPause->setText("Resume");
-        actPause->setChecked(true);
+        m_actPause->setText("Resume");
+        m_actPause->setChecked(true);
     }
     else
     {
         //m_timer->start(2000);
         ui->btnPause->setText("Pause");
         ui->netGraph->setPaused(false);
-        actPause->setText("Pause");
-        actPause->setChecked(false);
+        m_actPause->setText("Pause");
+        m_actPause->setChecked(false);
         // Importante: azzeriamo i contatori precedenti alla ripresa,
         // altrimenti il primo delta dopo la pausa calcolerebbe un tempo enorme o un salto sballato.
         m_lastRx = 0;
         m_lastTx = 0;
     }
 }
+
 void MainWindow::on_pauseChanged()
 {
-    if (ui->netGraph->paused() == false) actPause->setText("Pause");
-    else actPause->setText("Resume");
+    if (ui->netGraph->paused() == false) m_actPause->setText("Pause");
+    else m_actPause->setText("Resume");
 }
+
 void MainWindow::on_btnReset_clicked()
 {
     // Puliamo il grafico

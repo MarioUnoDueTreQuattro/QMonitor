@@ -50,12 +50,19 @@ private:
     QVector<QColor> *colors_net;
     QVector<QColor> *colors_cpu;
     QVector<QColor> *colors_ram;
-    QMenu *trayMenuNet;
-    QAction *actAbout;
-    QAction *actPause;
-    QAction *showHideAction;
-    QAction *quitAction;
-    QAction *actSettings;
+    // QMenu *trayMenuNet;
+    // QAction *actAbout;
+    // QAction *actPause;
+    // QAction *showHideAction;
+    // QAction *quitAction;
+    // QAction *actSettings;
+
+    QAction *m_actToggleWindow;
+    QAction *m_actPause;
+    QAction *m_actSettings;
+    QAction *m_actAbout;
+    QAction *m_actQuit;
+
     QTimer *m_timer;
     QSettings *settings;
     QString m_iface;
@@ -83,6 +90,9 @@ private:
     void sampleMemory();
     qint64 m_memoryScaleBytes;
     void readColors();
+    void createTrayActions();
+    QMenu *createTrayMenu();
+    void createTrayIcons();
 };
 
 #endif // MAINWINDOW_H
