@@ -22,6 +22,9 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 private slots:
     void readSettings();
     void updateStats();
@@ -36,6 +39,9 @@ private slots:
     void on_actionAbout_triggered();
 private:
     Ui::MainWindow *ui;
+    QPoint m_dragPosition;
+    QPoint m_dragStartPosition;
+    bool m_isDragging = false;
     QSystemTrayIcon *m_trayIconNet;
     QMenu *trayMenuNet;
     QAction *actAbout;

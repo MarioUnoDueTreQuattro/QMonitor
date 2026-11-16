@@ -131,6 +131,45 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        m_dragPosition = event->position().toPoint();
+        m_dragStartPosition = event->globalPosition().toPoint();
+        m_isDragging = false;
+        event->accept();
+    }
+    QMainWindow::mousePressEvent(event);
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton) {
+        if (!m_isDragging) {
+            // Check if movement exceeds 4 pixels threshold
+            QPoint currentGlobal = event->globalPosition().toPoint();
+            if ((currentGlobal - m_dragStartPosition).manhattanLength() > 4) {
+                m_isDragging = true;
+            }
+        }
+
+        if (m_isDragging) {
+            move(event->globalPosition().toPoint() - m_dragPosition);
+            event->accept();
+        }
+    }
+    QMainWindow::mouseMoveEvent(event);
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        m_isDragging = false;
+        event->accept();
+    }
+    QMainWindow::mouseReleaseEvent(event);
+}
+
 void MainWindow::showEvent(QShowEvent *event)
 {
     QMainWindow::showEvent(event);
