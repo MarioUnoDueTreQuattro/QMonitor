@@ -72,7 +72,7 @@ void SettingsDialog::loadSettings()
     {
         screenGeometry = screen->availableGeometry();
         defaultPos = QPoint((screenGeometry.width() - width()) / 2,
-                                    (screenGeometry.height() - height()) / 2);
+            (screenGeometry.height() - height()) / 2);
         // oppure usa screen->geometry() a seconda delle necessità
     }
     // int pos_x = (screenGeometry.width() - this->width()) / 2;
@@ -80,17 +80,17 @@ void SettingsDialog::loadSettings()
     //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     //QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
     QPoint savedPos = settings->value("SettingsPosition", defaultPos).toPoint();
-        move(savedPos);
+    move(savedPos);
     //QScreen *screen = QGuiApplication::screenAt(savedPos);
     // if (screen)
     // {
-    //     move(savedPos);
-    //     qDebug() << __PRETTY_FUNCTION__<< " posX:"<<savedPos.x() << " - posY:" <<savedPos.y();
+    // move(savedPos);
+    // qDebug() << __PRETTY_FUNCTION__<< " posX:"<<savedPos.x() << " - posY:" <<savedPos.y();
     // }
     // else
     // {
     //     // Se la posizione non è valida, centra la finestra
-    //     move(QPoint(pos_x, pos_y));
+    // move(QPoint(pos_x, pos_y));
     // }
     int iTab = settings->value("SettingsTab", 0).toInt();
     ui->tabWidget->setCurrentIndex(iTab);
@@ -125,7 +125,7 @@ void SettingsDialog::saveWindowPosition()
 {
     //settings->setValue("SettingsPosition", pos());
     settings->setValue("SettingsPosition", geometry().topLeft());
-    qDebug() << __PRETTY_FUNCTION__ << " posX:"<<pos().x() << " - posY:" <<pos().y();
+    qDebug() << __PRETTY_FUNCTION__ << " posX:" << pos().x() << " - posY:" << pos().y();
 }
 
 void SettingsDialog::moveEvent(QMoveEvent *event)
@@ -193,11 +193,19 @@ void SettingsDialog::loadColors()
         ColorButton *button = buttons.at(i);
         if (button->objectName() == "pushButtonColorDownload") defaultColor = QColor(0, 192, 0, 255);
         if (button->objectName() == "pushButtonColorUpload") defaultColor = QColor(255, 85, 0, 255);
+        if (button->objectName() == "pushButtonCPU") defaultColor = QColor(170, 0, 0, 255);
+        if (button->objectName() == "pushButtonColorRAM") defaultColor = QColor(0, 170, 255, 255);
+        if (button->objectName() == "pushButtonColorSwap") defaultColor = QColor(255, 80, 255, 255);
+        if (button->objectName() == "pushButtonColorZram") defaultColor = QColor(170, 170, 0, 255);
         QString storedName = settings->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }
     ui->spinBoxDownOpacity->setValue(settings->value("DownloadOpacity", 100).toInt());
     ui->spinBoxUpOpacity->setValue(settings->value("UploadOpacity", 100).toInt());
+    ui->spinBoxCPUOpacity->setValue(settings->value("CPUOpacity", 100).toInt());
+    ui->spinBoxRAMOpacity->setValue(settings->value("RAMOpacity", 100).toInt());
+    ui->spinBoxSwapOpacity->setValue(settings->value("SwapOpacity", 100).toInt());
+    ui->spinBoxZramOpacity->setValue(settings->value("ZRamOpacity", 100).toInt());
 }
 
 void SettingsDialog::saveColors()
@@ -210,6 +218,10 @@ void SettingsDialog::saveColors()
     }
     settings->setValue("DownloadOpacity", ui->spinBoxDownOpacity->value());
     settings->setValue("UploadOpacity", ui->spinBoxUpOpacity->value());
+    settings->setValue("CPUOpacity", ui->spinBoxCPUOpacity->value());
+    settings->setValue("RAMOpacity", ui->spinBoxRAMOpacity->value());
+    settings->setValue("SwapOpacity", ui->spinBoxSwapOpacity->value());
+    settings->setValue("ZRamOpacity", ui->spinBoxZramOpacity->value());
 }
 
 void SettingsDialog::on_checkBoxMonitorNet_checkStateChanged(const Qt::CheckState &arg1)
