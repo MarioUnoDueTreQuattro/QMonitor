@@ -41,6 +41,14 @@ MainWindow::MainWindow(QWidget *parent)
     m_timerNet->setTimerType(Qt::PreciseTimer);
     connect(m_timerNet, &QTimer::timeout, this, &MainWindow::updateStats);
     m_timerNet->start(m_updateIntervalNet);
+    m_timerCPU = new QTimer(this);
+    m_timerCPU->setTimerType(Qt::PreciseTimer);
+    connect(m_timerCPU, &QTimer::timeout, this, &MainWindow::sampleCpu);
+    m_timerCPU->start(m_updateIntervalCPU);
+    m_timerRAM = new QTimer(this);
+    m_timerRAM->setTimerType(Qt::PreciseTimer);
+    connect(m_timerRAM, &QTimer::timeout, this, &MainWindow::sampleMemory);
+    m_timerRAM->start(m_updateIntervalRAM);
     ui->labelAvg->setText("");
     ui->labelMax->setText("");
     ui->labelSpeed->setText("");
@@ -511,20 +519,35 @@ void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 
 void MainWindow::sampleCpu()
 {
+    bool graphIsPaused = ui->netGraph->paused();
+    if (graphIsPaused) return;
+
     QVector<qint64> values;
     values << m_cpuReader.readLoadPercent();
     m_cpuHistory->addSample(values);   // scale is fixed at 100
     //qDebug() << __PRETTY_FUNCTION__ << values;
+    m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, 24));
+    m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
+
 }
 
 void MainWindow::sampleMemory()
 {
+    bool graphIsPaused = ui->netGraph->paused();
+    if (graphIsPaused) return;
+
     MemorySnapshot snapshot = MemoryReader::read(false);
     // Scale is stored as a member, read by the widget and by the tray renderer
     m_memoryScaleBytes = snapshot.maxTotalBytes;
     QVector<qint64> values;
     values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
     m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
+    m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, 24));
+    QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
+    sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(1))));
+    sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(2))));
+    m_trayIconRAM->setToolTip(sMemory);
+
 }
 
 void MainWindow::readColors()
@@ -616,15 +639,6 @@ void MainWindow::updateStats()
                 }
             }
             m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(24));
-            sampleCpu();
-            m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, 24));
-            m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
-            sampleMemory();
-            m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, 24));
-            QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
-            sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(1))));
-            sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(2))));
-            m_trayIconRAM->setToolTip(sMemory);
         }
         else
         {
@@ -724,6 +738,8 @@ void MainWindow::setNetGraphSettings()
     m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();
     m_updateIntervalRAM = settings->value("UpdateIntervalRAM", 2000).toInt();
     m_timerNet->setInterval(m_updateIntervalNet);
+    m_timerCPU->setInterval(m_updateIntervalCPU);
+    m_timerRAM->setInterval(m_updateIntervalRAM);
     ui->netGraph->setUpdateIntervalNet(m_updateIntervalNet);
     QColor defaultColor = QColor(0, 192, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());

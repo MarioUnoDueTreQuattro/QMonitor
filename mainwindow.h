@@ -63,6 +63,8 @@ private:
     QAction *m_actAbout;
     QAction *m_actQuit;
     QTimer *m_timerNet;
+    QTimer *m_timerCPU;
+    QTimer *m_timerRAM;
     QSettings *settings;
     QString m_iface;
     qint64 m_lastRx;
