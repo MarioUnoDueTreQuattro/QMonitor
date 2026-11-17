@@ -37,7 +37,7 @@ private:
     DrawMode m_drawMode = DrawModeLines;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
         const QRect &graphRect, bool isTray);
-    void paintBars(QPainter &painter, const QRect &graphRect,
+    void paintTrayBars(QPainter &painter, const QRect &graphRect,
                           const SampleHistory *history,
                           const QVector<QColor> *seriesColors, double maxValue);
     void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);

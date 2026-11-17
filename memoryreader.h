@@ -6,8 +6,8 @@
 struct MemorySnapshot
 {
     double ramUsedBytes;
-    double swapUsedBytes;   // swap on disk only (zram excluded)
     double zramUsedBytes;       // uncompressed or physical RAM, see read()
+    double swapUsedBytes;   // swap on disk only (zram excluded)
     double maxTotalBytes;       // highest among ram, disk swap and zram totals
 };
 

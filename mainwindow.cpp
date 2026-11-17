@@ -548,12 +548,13 @@ void MainWindow::sampleMemory()
     // Scale is stored as a member, read by the widget and by the tray renderer
     m_memoryScaleBytes = snapshot.maxTotalBytes;
     QVector<qint64> values;
-    values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
+    //values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
+    values << snapshot.ramUsedBytes << snapshot.zramUsedBytes << snapshot.swapUsedBytes;
     m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
     m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, 24));
     QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
-    sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(1))));
-    sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(2))));
+    sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(2))));
+    sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(1))));
     m_trayIconRAM->setToolTip(sMemory);
 }
 
@@ -573,16 +574,17 @@ void MainWindow::readColors()
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram->append(defaultColor);
-    defaultColor = QColor(settings->value("pushButtonColorSwap", defaultColor.name()).toString());
-    iAlplha = settings->value("SwapOpacity", 100).toInt();
-    iAlplha = qRound(iAlplha * 255.0 / 100.0);
-    defaultColor.setAlpha(iAlplha);
-    colors_ram->append(defaultColor);
     defaultColor = QColor(settings->value("pushButtonColorZram", defaultColor.name()).toString());
     iAlplha = settings->value("ZRamOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram->append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorSwap", defaultColor.name()).toString());
+    iAlplha = settings->value("SwapOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_ram->append(defaultColor);
+
 }
 
 void MainWindow::updateStats()
@@ -764,12 +766,12 @@ QString MainWindow::formatBytesNet(qint64 bytes)
 {
     if (bytes < 1024) return QString("%1 B/s").arg(bytes);
     if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
-    return QString("%1 MB/s").arg(bytes / (1024.0 * 1024.0), 0, 'f', 1);
+    return QString("%1 MB/s").arg(bytes / (BYTES_PER_MB), 0, 'f', 1);
 }
 
 QString MainWindow::formatBytes(qint64 bytes)
 {
-    return QString("%1 MB").arg(bytes / (1024.0 * 1024.0), 0, 'f', 0);
+    return QString("%1 MB").arg(bytes / (BYTES_PER_MB), 0, 'f', 0);
 }
 
 void MainWindow::on_btnPause_clicked()

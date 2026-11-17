@@ -101,6 +101,7 @@ private:
     void createTrayIcons();
     void setNetworkInterface(const QString &interfaceName);
     QByteArray m_netInterfaceKey;
+    static constexpr double BYTES_PER_MB = 1024.0 * 1024.0;   // 1 048 576.0
 };
 
 #endif // MAINWINDOW_H

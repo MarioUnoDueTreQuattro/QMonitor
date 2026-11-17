@@ -159,7 +159,7 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
 }
 
 // graphpainter.cpp
-void NetGraphWidget::paintBars(QPainter &painter, const QRect &graphRect,
+void NetGraphWidget::paintTrayBars(QPainter &painter, const QRect &graphRect,
                              const SampleHistory *history,
                              const QVector<QColor> *seriesColors, double maxValue)
 {
@@ -243,7 +243,7 @@ QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory *history,
     pixmap.fill(Qt::transparent);
 
     QPainter painter(&pixmap);
-    paintBars(painter, QRect(0, 0, size, size), history, colors, maxValue);
+    paintTrayBars(painter, QRect(0, 0, size, size), history, colors, maxValue);
     return pixmap;
 }
 
