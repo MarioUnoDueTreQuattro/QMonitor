@@ -72,8 +72,8 @@ bool NetGraphWidget::paused() const
 
 void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
 {
-    qint64 now = QDateTime::currentMSecsSinceEpoch() / m_updateIntervalNet;
-    m_history.append({rxSpeed, txSpeed, now});
+    //qint64 now = QDateTime::currentMSecsSinceEpoch() / m_updateIntervalNet;
+    m_history.append({rxSpeed, txSpeed});
     // Calcoliamo lo spazio disponibile per adattare lo storico ai pixel correnti
     int marginLeft = 60;
     int marginRight = 0;

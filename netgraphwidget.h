@@ -45,7 +45,7 @@ private:
     {
         qint64 rx;
         qint64 tx;
-        qint64 timestamp;
+        //qint64 timestamp;
     };
     QVector<DataPoint> m_history;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)

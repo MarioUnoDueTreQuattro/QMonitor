@@ -99,6 +99,8 @@ private:
     void createTrayActions();
     QMenu *createTrayMenu();
     void createTrayIcons();
+    void setNetworkInterface(const QString &interfaceName);
+    QByteArray m_netInterfaceKey;
 };
 
 #endif // MAINWINDOW_H

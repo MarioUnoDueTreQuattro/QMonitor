@@ -21,6 +21,7 @@ public:
 private:
     static double readMeminfoKilobytes(const QByteArray &allContent, const QByteArray &key);
     static double readZramBytes(const QString &deviceName, bool zramPhysical);
+    static void parseMeminfo(const QByteArray &content, double &memTotalKb, double &memAvailableKb);
 };
 
 #endif // MEMORYREADER_H

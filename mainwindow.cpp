@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastRx(0)
     , m_lastTx(0)
 {
+    setNetworkInterface(m_iface);
     m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
@@ -38,15 +39,15 @@ MainWindow::MainWindow(QWidget *parent)
     m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();
     m_updateIntervalRAM = settings->value("UpdateIntervalRAM", 2000).toInt();
     m_timerNet = new QTimer(this);
-    m_timerNet->setTimerType(Qt::PreciseTimer);
+    m_timerNet->setTimerType(Qt::CoarseTimer);
     connect(m_timerNet, &QTimer::timeout, this, &MainWindow::updateStats);
     m_timerNet->start(m_updateIntervalNet);
     m_timerCPU = new QTimer(this);
-    m_timerCPU->setTimerType(Qt::PreciseTimer);
+    m_timerCPU->setTimerType(Qt::CoarseTimer);
     connect(m_timerCPU, &QTimer::timeout, this, &MainWindow::sampleCpu);
     m_timerCPU->start(m_updateIntervalCPU);
     m_timerRAM = new QTimer(this);
-    m_timerRAM->setTimerType(Qt::PreciseTimer);
+    m_timerRAM->setTimerType(Qt::CoarseTimer);
     connect(m_timerRAM, &QTimer::timeout, this, &MainWindow::sampleMemory);
     m_timerRAM->start(m_updateIntervalRAM);
     ui->labelAvg->setText("");
@@ -61,15 +62,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->netGraph, &NetGraphWidget::aboutRequested, this, &MainWindow::on_actionAbout_triggered);
     connect(ui->netGraph, &NetGraphWidget::hideRequested, this, &MainWindow::hide);
     connect(ui->netGraph, &NetGraphWidget::pauseStateChanged, this, &MainWindow::on_pauseChanged);
-    m_trayIconNet = new QSystemTrayIcon(this);
-    m_trayIconNet->setIcon(this->windowIcon());
-    m_trayIconCPU = new QSystemTrayIcon(this);
-    m_trayIconCPU->setIcon(this->windowIcon());
-    m_trayIconRAM = new QSystemTrayIcon(this);
-    m_trayIconRAM->setIcon(this->windowIcon());
-    connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    // m_trayIconNet = new QSystemTrayIcon(this);
+    // m_trayIconNet->setIcon(this->windowIcon());
+    // m_trayIconCPU = new QSystemTrayIcon(this);
+    // m_trayIconCPU->setIcon(this->windowIcon());
+    // m_trayIconRAM = new QSystemTrayIcon(this);
+    // m_trayIconRAM->setIcon(this->windowIcon());
+    // connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    // connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
+    // connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
     // trayMenuNet = new QMenu(this);
     // showHideAction = trayMenuNet->addAction("Hide/Show");
     // showHideAction->setIcon(QIcon::fromTheme("password-show-on"));
@@ -190,6 +191,13 @@ void MainWindow::createTrayIcons()
     }
 }
 
+void MainWindow::setNetworkInterface(const QString &interfaceName)
+{
+    // Single place where the interface name changes: keep the search key in sync
+    m_iface = interfaceName;
+    m_netInterfaceKey = interfaceName.toLatin1() + ':';
+}
+
 void MainWindow::toggleMainWindow()
 {
     if (isVisible())
@@ -202,7 +210,7 @@ void MainWindow::toggleMainWindow()
         show();
         raise();
         activateWindow();
-        settings->setValue("MainWinVisible", false);
+        settings->setValue("MainWinVisible", true);
     }
 }
 
@@ -338,7 +346,7 @@ void MainWindow::readSettings()
     bool bIsVisible = settings->value("MainWinVisible", true).toBool();
     if (!bIsVisible)
     {
-        QTimer::singleShot(500, this, &MainWindow::hide);
+        QTimer::singleShot(1000, this, &MainWindow::hide);
     }
     bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     setWindowFrameless(bTitle);
@@ -520,22 +528,19 @@ void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 void MainWindow::sampleCpu()
 {
     bool graphIsPaused = ui->netGraph->paused();
-    if (graphIsPaused) return;
-
+    if (graphIsPaused || !m_MonitorCPU) return;
     QVector<qint64> values;
     values << m_cpuReader.readLoadPercent();
     m_cpuHistory->addSample(values);   // scale is fixed at 100
     //qDebug() << __PRETTY_FUNCTION__ << values;
     m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, 24));
     m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
-
 }
 
 void MainWindow::sampleMemory()
 {
     bool graphIsPaused = ui->netGraph->paused();
-    if (graphIsPaused) return;
-
+    if (graphIsPaused || !m_MonitorMemory) return;
     MemorySnapshot snapshot = MemoryReader::read(false);
     // Scale is stored as a member, read by the widget and by the tray renderer
     m_memoryScaleBytes = snapshot.maxTotalBytes;
@@ -547,7 +552,6 @@ void MainWindow::sampleMemory()
     sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(1))));
     sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(2))));
     m_trayIconRAM->setToolTip(sMemory);
-
 }
 
 void MainWindow::readColors()
@@ -581,7 +585,7 @@ void MainWindow::readColors()
 void MainWindow::updateStats()
 {
     bool graphIsPaused = ui->netGraph->paused();
-    if (graphIsPaused) return;
+    if (graphIsPaused || !m_MonitorNet) return;
     qint64 rx = 0, tx = 0;
     if (readNetDev(m_iface, rx, tx))
     {
@@ -650,6 +654,90 @@ void MainWindow::updateStats()
     }
 }
 
+bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes)
+{
+    QFile file("/proc/net/dev");
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+    const QByteArray content = file.readAll();
+    file.close();
+
+    //const QByteArray key = targetIface.toLatin1() + ':';
+    int pos = 0;
+    //while ((pos = content.indexOf(key, pos)) >= 0)
+    while ((pos = content.indexOf(m_netInterfaceKey, pos)) >= 0)
+    {
+        // Accept the match only at the start of the name:
+        // "veth0:" must not match when looking for "eth0:"
+        if (pos == 0 || content.at(pos - 1) == ' ' || content.at(pos - 1) == '\n')
+            break;
+        //pos += key.size();
+        pos += m_netInterfaceKey.size();
+    }
+    if (pos < 0)
+        return false;
+
+    // Fields after the colon: 0 = rx bytes, 8 = tx bytes
+    //const char *cursor = content.constData() + pos + key.size();   // buffer is null-terminated
+    const char *cursor = content.constData() + pos + m_netInterfaceKey.size();
+    char *end = nullptr;
+
+    rxBytes = strtoll(cursor, &end, 10);
+    if (end == cursor)
+        return false;
+    cursor = end;
+
+    for (int skipped = 0; skipped < 7; ++skipped)   // fields 1..7
+    {
+        strtoll(cursor, &end, 10);
+        if (end == cursor)
+            return false;
+        cursor = end;
+    }
+
+    txBytes = strtoll(cursor, &end, 10);
+    return end != cursor;
+}
+
+/*
+bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes)
+{
+    QFile file("/proc/net/dev");
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    const QByteArray content = file.readAll();
+    file.close();
+
+    // Built once, not for every line
+    const QByteArray interfacePrefix = targetIface.toLatin1() + ':';
+
+    const QList<QByteArray> lines = content.split('\n');
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        // Lines look like "  eth0: 1234 5 0 0 0 0 0 0 5678 ..."
+        // The two header lines never start with an interface name.
+        const QByteArray line = lines.at(i).trimmed();
+        if (!line.startsWith(interfacePrefix))
+            continue;
+
+        // Split only what follows the colon: with long interface names the
+        // first counter can be glued to the colon, so the old index-based
+        // approach (parts[1], parts[9]) could break.
+        // Fields after the colon: 0 = rx bytes, 8 = tx bytes
+        const QList<QByteArray> fields = line.mid(interfacePrefix.size()).simplified().split(' ');
+        if (fields.size() < 9)
+            return false;
+
+        rxBytes = fields.at(0).toLongLong();
+        txBytes = fields.at(8).toLongLong();
+        return true;
+    }
+    return false;
+}
+*/
+
+/*
 bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint64 & txBytes)
 {
     QFile file("/proc/net/dev");
@@ -673,6 +761,7 @@ bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint6
     }
     return false;
 }
+*/
 QString MainWindow::formatBytesNet(qint64 bytes)
 {
     if (bytes < 1024) return QString("%1 B/s").arg(bytes);
@@ -795,22 +884,12 @@ void MainWindow::settingsDialogAccepted()
     }
     setNetGraphSettings();
 }
+
 void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
 {
-    if (reason == QSystemTrayIcon::Trigger)
-    {
-        if (isVisible())
-        {
-            hide();
-        }
-        else
-        {
-            show();
-            raise();
-            activateWindow();
-        }
-    }
+    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
 }
+
 void MainWindow::on_actionAbout_triggered()
 {
     AboutDialog aboutDlg(this);
