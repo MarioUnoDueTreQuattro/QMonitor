@@ -4,6 +4,8 @@
 #include <QScreen>
 #include <QTimer>
 #include <QGuiApplication>
+#include <QNetworkInterface>
+#include <QNetworkAddressEntry>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent),
@@ -28,6 +30,7 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::setupDialog()
 {
+    loadNetworkDevices();
     loadSettings();
     // Connessioni standard: accepted -> accept, rejected -> reject
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -62,6 +65,7 @@ void SettingsDialog::saveSettings()
     settings->setValue("WindowAlwaysOnTop", ui->checkBoxAlwaysOnTop->isChecked());
     settings->setValue("WindowHideInTaskbar", ui->checkBoxTaskbar->isChecked());
     settings->setValue("WindowBypassWM", ui->checkBoxWindowBypassWM->isChecked());
+    settings->setValue("NetworkDevice", ui->comboNetworkDevice->currentData().toString());
     settings->sync();
 }
 
@@ -123,6 +127,19 @@ void SettingsDialog::loadSettings()
     ui->spinBoxWindowOpacity->setValue(iWindowOpacity);
     bool bWindowBypassWM = settings->value("WindowBypassWM", false).toBool();
     ui->checkBoxWindowBypassWM->setChecked(bWindowBypassWM);
+    QString savedDevice = settings->value("NetworkDevice").toString();
+    int index = ui->comboNetworkDevice->findData(savedDevice);
+    if (index >= 0)
+        ui->comboNetworkDevice->setCurrentIndex(index);
+    // for (int i = 0; i < ui->comboNetworkDevice->count(); ++i)
+    // {
+    //     qDebug() << "Text:" << ui->comboNetworkDevice->itemText(i)
+    //              << "Data:" << ui->comboNetworkDevice->itemData(i);
+    // }
+
+    // qDebug() << "Saved device:" << savedDevice;
+    // qDebug() << "Found index:"
+    //          << ui->comboNetworkDevice->findData(savedDevice);
 }
 
 void SettingsDialog::saveWindowPosition()
@@ -275,3 +292,22 @@ void SettingsDialog::on_checkBoxMonitorMemory_checkStateChanged(const Qt::CheckS
     }
 }
 
+void SettingsDialog::loadNetworkDevices()
+{
+    ui->comboNetworkDevice->clear();
+    const QList<QNetworkInterface> interfaces =
+        QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &interface : interfaces)
+    {
+        // Ignore interfaces that are not usable.
+        if (!(interface.flags() & QNetworkInterface::IsUp))
+            continue;
+        QString description = interface.humanReadableName();
+        if (description.isEmpty())
+            description = interface.name();
+        QString text = QString("%1 (%2)")
+            .arg(interface.name())
+            .arg(description);
+        ui->comboNetworkDevice->addItem(text, interface.name());
+    }
+}

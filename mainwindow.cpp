@@ -356,6 +356,9 @@ void MainWindow::readSettings()
     setWindowAlwaysOnTop(alwaysOnTop);
     bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     setWindowShowInTaskbar(!bHideInTaskbar);
+    QString savedDevice = settings->value("NetworkDevice", "wlp2s0").toString();
+    m_iface = savedDevice;
+    setNetworkInterface(m_iface);
     setNetGraphSettings();
     // Ripristina la geometria della finestra
     restoreGeometry(settings->value("geometry").toByteArray());
@@ -661,7 +664,6 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
         return false;
     const QByteArray content = file.readAll();
     file.close();
-
     //const QByteArray key = targetIface.toLatin1() + ':';
     int pos = 0;
     //while ((pos = content.indexOf(key, pos)) >= 0)
@@ -676,17 +678,14 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
     }
     if (pos < 0)
         return false;
-
     // Fields after the colon: 0 = rx bytes, 8 = tx bytes
     //const char *cursor = content.constData() + pos + key.size();   // buffer is null-terminated
     const char *cursor = content.constData() + pos + m_netInterfaceKey.size();
     char *end = nullptr;
-
     rxBytes = strtoll(cursor, &end, 10);
     if (end == cursor)
         return false;
     cursor = end;
-
     for (int skipped = 0; skipped < 7; ++skipped)   // fields 1..7
     {
         strtoll(cursor, &end, 10);
@@ -694,7 +693,6 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
             return false;
         cursor = end;
     }
-
     txBytes = strtoll(cursor, &end, 10);
     return end != cursor;
 }
@@ -882,6 +880,9 @@ void MainWindow::settingsDialogAccepted()
         messageBox.exec();
         on_actionSettings_triggered();
     }
+    QString savedDevice = settings->value("NetworkDevice", "wlp2s0").toString();
+    m_iface = savedDevice;
+    setNetworkInterface(m_iface);
     setNetGraphSettings();
 }
 

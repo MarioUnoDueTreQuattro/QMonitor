@@ -30,6 +30,7 @@ private:
     void loadSettings();
     void loadColors();
     void saveColors();
+    void loadNetworkDevices();
 private slots:
     void on_buttonBox_clicked(QAbstractButton *button);
     void on_SettingsDialog_accepted();
