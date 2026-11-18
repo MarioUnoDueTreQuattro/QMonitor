@@ -657,6 +657,7 @@ void MainWindow::updateStats()
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
+            m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(m_trayIconsSize));
         }
     }
 }

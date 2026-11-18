@@ -155,35 +155,6 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
     painter.drawPath(path);
 }
 
-// graphpainter.cpp
-void NetGraphWidget::paintTrayBars(QPainter &painter, const QRect &graphRect,
-    const SampleHistory &history,
-    const QVector<QColor> &seriesColors, double maxValue)
-{
-    if (maxValue <= 0.0 || history.sampleCount() == 0)
-        return;
-    const int bottom = graphRect.bottom();
-    const int samplesToDraw = qMin(history.sampleCount(), graphRect.width());
-    const int firstSample = history.sampleCount() - samplesToDraw;
-    const int firstX = graphRect.right() - samplesToDraw + 1;
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    for (int s = 0; s < history.seriesCount() && s < seriesColors.size(); ++s)
-    {
-        QVector<QLine> lines;
-        lines.reserve(samplesToDraw);
-        for (int i = 0; i < samplesToDraw; ++i)
-        {
-            double value = history.valueAt(s, firstSample + i);
-            int barHeight = static_cast<int>(value / maxValue * graphRect.height());
-            barHeight = qBound(0, barHeight, graphRect.height());
-            int x = firstX + i;
-            lines.append(QLine(x, bottom, x, bottom - barHeight));
-        }
-        painter.setPen(QPen(seriesColors.at(s), 1));
-        painter.drawLines(lines);
-    }
-}
-
 void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, bool isTray)
 {
     if (m_maxVal <= 0 || m_history.isEmpty())
@@ -212,13 +183,27 @@ void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool use
     painter.drawLines(lines);
 }
 
+qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
+{
+    qint64 maxVal = 1;
+    int first =
+        qMax(0,
+            m_history.size() - visibleSamples);
+    for (int i = first; i < m_history.size(); ++i)
+    {
+        maxVal = qMax(maxVal, m_history[i].rx);
+        maxVal = qMax(maxVal, m_history[i].tx);
+    }
+    return maxVal;
+}
+
 QPixmap NetGraphWidget::renderTrayIcon(int size)
 {
     QPixmap pixmap(size, size);
     pixmap.fill(Qt::transparent);   // or a dark background, see below
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing, false);
-    if (m_history.size() >= 2)
+    if (m_history.size() >= 1)
     {
         QRect graphRect(0, 0, size, size);
         drawSeriesBars(painter, m_penRx, true, graphRect, true);
@@ -237,18 +222,32 @@ QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory &history,
     return pixmap;
 }
 
-qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
+void NetGraphWidget::paintTrayBars(QPainter &painter, const QRect &graphRect,
+    const SampleHistory &history,
+    const QVector<QColor> &seriesColors, double maxValue)
 {
-    qint64 maxVal = 1;
-    int first =
-        qMax(0,
-            m_history.size() - visibleSamples);
-    for (int i = first; i < m_history.size(); ++i)
+    if (maxValue <= 0.0 || history.sampleCount() == 0)
+        return;
+    const int bottom = graphRect.bottom();
+    const int samplesToDraw = qMin(history.sampleCount(), graphRect.width());
+    const int firstSample = history.sampleCount() - samplesToDraw;
+    const int firstX = graphRect.right() - samplesToDraw + 1;
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    for (int s = 0; s < history.seriesCount() && s < seriesColors.size(); ++s)
     {
-        maxVal = qMax(maxVal, m_history[i].rx);
-        maxVal = qMax(maxVal, m_history[i].tx);
+        QVector<QLine> lines;
+        lines.reserve(samplesToDraw);
+        for (int i = 0; i < samplesToDraw; ++i)
+        {
+            double value = history.valueAt(s, firstSample + i);
+            int barHeight = static_cast<int>(value / maxValue * graphRect.height());
+            barHeight = qBound(0, barHeight, graphRect.height());
+            int x = firstX + i;
+            lines.append(QLine(x, bottom, x, bottom - barHeight));
+        }
+        painter.setPen(QPen(seriesColors.at(s), 1));
+        painter.drawLines(lines);
     }
-    return maxVal;
 }
 
 void NetGraphWidget::setUpdateIntervalNet(int newUpdateIntervalNet)
