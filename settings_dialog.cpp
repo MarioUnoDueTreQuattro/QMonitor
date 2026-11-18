@@ -66,6 +66,7 @@ void SettingsDialog::saveSettings()
     settings->setValue("WindowHideInTaskbar", ui->checkBoxTaskbar->isChecked());
     settings->setValue("WindowBypassWM", ui->checkBoxWindowBypassWM->isChecked());
     settings->setValue("NetworkDevice", ui->comboNetworkDevice->currentData().toString());
+    settings->setValue("TrayIconsSize", ui->spinBoxTrayIconsSize->value());
     settings->sync();
 }
 
@@ -129,17 +130,17 @@ void SettingsDialog::loadSettings()
     ui->checkBoxWindowBypassWM->setChecked(bWindowBypassWM);
     QString savedDevice = settings->value("NetworkDevice").toString();
     int index = ui->comboNetworkDevice->findData(savedDevice);
-    if (index >= 0)
-        ui->comboNetworkDevice->setCurrentIndex(index);
+    if (index >= 0) ui->comboNetworkDevice->setCurrentIndex(index);
+    int iTraySize = settings->value("TrayIconsSize", 32).toInt();
+    ui->spinBoxTrayIconsSize->setValue(iTraySize);
     // for (int i = 0; i < ui->comboNetworkDevice->count(); ++i)
     // {
-    //     qDebug() << "Text:" << ui->comboNetworkDevice->itemText(i)
-    //              << "Data:" << ui->comboNetworkDevice->itemData(i);
+    // qDebug() << "Text:" << ui->comboNetworkDevice->itemText(i)
+    // << "Data:" << ui->comboNetworkDevice->itemData(i);
     // }
-
     // qDebug() << "Saved device:" << savedDevice;
     // qDebug() << "Found index:"
-    //          << ui->comboNetworkDevice->findData(savedDevice);
+    // << ui->comboNetworkDevice->findData(savedDevice);
 }
 
 void SettingsDialog::saveWindowPosition()

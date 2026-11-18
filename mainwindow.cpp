@@ -116,6 +116,9 @@ MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
+    delete colors_net;
+    delete colors_cpu;
+    delete colors_ram;
 }
 
 bool MainWindow::isAnyGraphEnabled() const
@@ -536,7 +539,7 @@ void MainWindow::sampleCpu()
     values << m_cpuReader.readLoadPercent();
     m_cpuHistory->addSample(values);   // scale is fixed at 100
     //qDebug() << __PRETTY_FUNCTION__ << values;
-    m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, 24));
+    m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, m_trayIconsSize));
     m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
 }
 
@@ -551,7 +554,7 @@ void MainWindow::sampleMemory()
     //values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
     values << snapshot.ramUsedBytes << snapshot.zramUsedBytes << snapshot.swapUsedBytes;
     m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
-    m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, 24));
+    m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, m_trayIconsSize));
     QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
     sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(2))));
     sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(1))));
@@ -584,7 +587,6 @@ void MainWindow::readColors()
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram->append(defaultColor);
-
 }
 
 void MainWindow::updateStats()
@@ -647,7 +649,7 @@ void MainWindow::updateStats()
                     }
                 }
             }
-            m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(24));
+            m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(m_trayIconsSize));
         }
         else
         {
@@ -823,6 +825,7 @@ void MainWindow::on_actionSettings_triggered()
 }
 void MainWindow::setNetGraphSettings()
 {
+    m_trayIconsSize = settings->value("TrayIconsSize", 32).toInt();
     m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
     m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();
     m_updateIntervalRAM = settings->value("UpdateIntervalRAM", 2000).toInt();

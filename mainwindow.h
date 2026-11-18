@@ -79,6 +79,7 @@ private:
     int m_updateIntervalNet;
     int m_updateIntervalCPU;
     int m_updateIntervalRAM;
+    int m_trayIconsSize;
     void setNetGraphSettings();
     bool m_bShowAvgMax;
     bool m_isQuitting = false;
