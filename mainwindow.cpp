@@ -563,6 +563,7 @@ void MainWindow::sampleMemory()
 
 void MainWindow::readColors()
 {
+    colors_net.clear();
     colors_cpu.clear();
     colors_ram.clear();
     QColor newColor;
@@ -587,6 +588,16 @@ void MainWindow::readColors()
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram.append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
+    iAlplha = settings->value("DownloadOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_net.append(defaultColor);
+    defaultColor = QColor(settings->value("pushButtonColorUpload", defaultColor.name()).toString());
+    iAlplha = settings->value("UploadOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    colors_net.append(defaultColor);
 }
 
 void MainWindow::updateStats()
@@ -616,6 +627,12 @@ void MainWindow::updateStats()
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
             {
+                QVector<qint64> values;
+                //values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
+                values << rxSpeed << txSpeed;
+                m_networkHistory->addSample(values);   // emits historyChanged() after the scale is updated
+                m_netScaleBytes = m_networkHistory->maxValueInLast(m_trayIconsSize, 0);
+                m_trayIconNet->setIcon(ui->netGraph->renderTrayPixmap(*m_networkHistory, colors_net, m_netScaleBytes, m_trayIconsSize));
                 ui->netGraph->addData(rxSpeed, txSpeed);
                 //m_trayIcon->showMessage(QString(""),QString("Down: %1\nUp: %2").arg(formatBytes(rxSpeed)).arg(formatBytes(txSpeed)),QSystemTrayIcon::Information,5000);
                 m_trayIconNet->setToolTip(QString("Down: %1\nUp: %2") .arg(s_rxSpeed).arg(s_txSpeed));
@@ -649,7 +666,7 @@ void MainWindow::updateStats()
                     }
                 }
             }
-            m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(m_trayIconsSize));
+            //m_trayIconNet->setIcon(ui->netGraph->renderTrayIcon(m_trayIconsSize));
         }
         else
         {

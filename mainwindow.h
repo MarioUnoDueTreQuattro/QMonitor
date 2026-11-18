@@ -96,6 +96,7 @@ private:
     void sampleCpu();
     void sampleMemory();
     qint64 m_memoryScaleBytes;
+    qint64 m_netScaleBytes;
     void readColors();
     void createTrayActions();
     QMenu *createTrayMenu();
