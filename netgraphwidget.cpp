@@ -33,11 +33,9 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     menu.addSeparator();
     QAction *actSettings = menu.addAction(tr("Settings..."));
     actSettings->setIcon(QIcon::fromTheme("configure"));
-
     actSettings->setIcon(QIcon::fromTheme("configure"));
     QAction *actAbout = menu.addAction(tr("About..."));
     actAbout->setIcon(QIcon::fromTheme("QMonitor"));
-
     // Esecuzione modale: restituisce l'action scelta (o nullptr)
     QAction *selected = menu.exec(mapToGlobal(pos));
     if (!selected)
@@ -62,7 +60,6 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     {
         emit hideRequested();
     }
-
 }
 
 bool NetGraphWidget::paused() const
@@ -160,35 +157,29 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
 
 // graphpainter.cpp
 void NetGraphWidget::paintTrayBars(QPainter &painter, const QRect &graphRect,
-                             const SampleHistory *history,
-                             const QVector<QColor> *seriesColors, double maxValue)
+    const SampleHistory &history,
+    const QVector<QColor> &seriesColors, double maxValue)
 {
-    if (maxValue <= 0.0 || history->sampleCount() == 0)
+    if (maxValue <= 0.0 || history.sampleCount() == 0)
         return;
-
     const int bottom = graphRect.bottom();
-    const int samplesToDraw = qMin(history->sampleCount(), graphRect.width());
-    const int firstSample = history->sampleCount() - samplesToDraw;
+    const int samplesToDraw = qMin(history.sampleCount(), graphRect.width());
+    const int firstSample = history.sampleCount() - samplesToDraw;
     const int firstX = graphRect.right() - samplesToDraw + 1;
-
     painter.setRenderHint(QPainter::Antialiasing, false);
-
-    for (int s = 0; s < history->seriesCount() && s < seriesColors->size(); ++s)
+    for (int s = 0; s < history.seriesCount() && s < seriesColors.size(); ++s)
     {
         QVector<QLine> lines;
         lines.reserve(samplesToDraw);
-
         for (int i = 0; i < samplesToDraw; ++i)
         {
-            double value = history->valueAt(s, firstSample + i);
+            double value = history.valueAt(s, firstSample + i);
             int barHeight = static_cast<int>(value / maxValue * graphRect.height());
             barHeight = qBound(0, barHeight, graphRect.height());
-
             int x = firstX + i;
             lines.append(QLine(x, bottom, x, bottom - barHeight));
         }
-
-        painter.setPen(QPen(seriesColors->at(s), 1));
+        painter.setPen(QPen(seriesColors.at(s), 1));
         painter.drawLines(lines);
     }
 }
@@ -236,12 +227,11 @@ QPixmap NetGraphWidget::renderTrayIcon(int size)
     return pixmap;
 }
 
-QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory *history,
-                                     QVector<QColor> *colors, double maxValue, int size)
+QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory &history,
+    QVector<QColor> &colors, double maxValue, int size)
 {
     QPixmap pixmap(size, size);
     pixmap.fill(Qt::transparent);
-
     QPainter painter(&pixmap);
     paintTrayBars(painter, QRect(0, 0, size, size), history, colors, maxValue);
     return pixmap;

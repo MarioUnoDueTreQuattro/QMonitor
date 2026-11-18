@@ -48,9 +48,9 @@ private:
     QSystemTrayIcon *m_trayIconNet;
     QSystemTrayIcon *m_trayIconCPU;
     QSystemTrayIcon *m_trayIconRAM;
-    QVector<QColor> *colors_net;
-    QVector<QColor> *colors_cpu;
-    QVector<QColor> *colors_ram;
+    QVector<QColor> colors_net;
+    QVector<QColor> colors_cpu;
+    QVector<QColor> colors_ram;
     // QMenu *trayMenuNet;
     // QAction *actAbout;
     // QAction *actPause;

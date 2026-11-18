@@ -19,7 +19,7 @@ public:
     void setUploadColor(const QColor &newColor);
     void setDrawMode(int newMode);
     QPixmap renderTrayIcon(int size);
-    QPixmap renderTrayPixmap(SampleHistory *history,  QVector<QColor> *colors, double maxValue, int size);
+    static QPixmap renderTrayPixmap(SampleHistory &history, QVector<QColor> &colors, double maxValue, int size);
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
@@ -27,7 +27,6 @@ public:
     bool paused() const;
     enum DrawMode { DrawModeLines, DrawModeBars };
     void setUpdateIntervalNet(int newUpdateIntervalNet);
-
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -37,9 +36,7 @@ private:
     DrawMode m_drawMode = DrawModeLines;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
         const QRect &graphRect, bool isTray);
-    void paintTrayBars(QPainter &painter, const QRect &graphRect,
-                          const SampleHistory *history,
-                          const QVector<QColor> *seriesColors, double maxValue);
+    static void paintTrayBars(QPainter &painter, const QRect &graphRect, const SampleHistory &history, const QVector<QColor> &seriesColors, double maxValue);
     void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
     {

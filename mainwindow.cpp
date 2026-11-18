@@ -25,9 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
-    colors_net = new QVector<QColor>();
-    colors_cpu = new QVector<QColor>();
-    colors_ram = new QVector<QColor>();
+    // colors_net = new QVector<QColor>();
+    // colors_cpu = new QVector<QColor>();
+    // colors_ram = new QVector<QColor>();
     ui->setupUi(this);
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
@@ -116,9 +116,9 @@ MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
-    delete colors_net;
-    delete colors_cpu;
-    delete colors_ram;
+    // delete colors_net;
+    // delete colors_cpu;
+    // delete colors_ram;
 }
 
 bool MainWindow::isAnyGraphEnabled() const
@@ -539,7 +539,7 @@ void MainWindow::sampleCpu()
     values << m_cpuReader.readLoadPercent();
     m_cpuHistory->addSample(values);   // scale is fixed at 100
     //qDebug() << __PRETTY_FUNCTION__ << values;
-    m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(m_cpuHistory, colors_cpu, 100, m_trayIconsSize));
+    m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(*m_cpuHistory, colors_cpu, 100, m_trayIconsSize));
     m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
 }
 
@@ -554,7 +554,7 @@ void MainWindow::sampleMemory()
     //values << snapshot.ramUsedBytes << snapshot.swapUsedBytes << snapshot.zramUsedBytes;
     values << snapshot.ramUsedBytes << snapshot.zramUsedBytes << snapshot.swapUsedBytes;
     m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
-    m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(m_memoryHistory, colors_ram, m_memoryScaleBytes, m_trayIconsSize));
+    m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(*m_memoryHistory, colors_ram, m_memoryScaleBytes, m_trayIconsSize));
     QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
     sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(2))));
     sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(1))));
@@ -563,30 +563,30 @@ void MainWindow::sampleMemory()
 
 void MainWindow::readColors()
 {
-    colors_cpu->clear();
-    colors_ram->clear();
+    colors_cpu.clear();
+    colors_ram.clear();
     QColor newColor;
     QColor defaultColor = QColor(255, 0, 0, 255);
     defaultColor = QColor(settings->value("pushButtonCPU", defaultColor.name()).toString());
     int iAlplha = settings->value("CPUOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
-    colors_cpu->append(defaultColor);
+    colors_cpu.append(defaultColor);
     defaultColor = QColor(settings->value("pushButtonColorRAM", defaultColor.name()).toString());
     iAlplha = settings->value("RAMOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
-    colors_ram->append(defaultColor);
+    colors_ram.append(defaultColor);
     defaultColor = QColor(settings->value("pushButtonColorZram", defaultColor.name()).toString());
     iAlplha = settings->value("ZRamOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
-    colors_ram->append(defaultColor);
+    colors_ram.append(defaultColor);
     defaultColor = QColor(settings->value("pushButtonColorSwap", defaultColor.name()).toString());
     iAlplha = settings->value("SwapOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
-    colors_ram->append(defaultColor);
+    colors_ram.append(defaultColor);
 }
 
 void MainWindow::updateStats()
