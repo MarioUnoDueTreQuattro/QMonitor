@@ -21,14 +21,15 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lastRx(0)
     , m_lastTx(0)
 {
+    ui->setupUi(this);
     setNetworkInterface(m_iface);
     m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
+    ui->netGraph->setSampleHistory(m_networkHistory);
     // colors_net = new QVector<QColor>();
     // colors_cpu = new QVector<QColor>();
     // colors_ram = new QVector<QColor>();
-    ui->setupUi(this);
     setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)

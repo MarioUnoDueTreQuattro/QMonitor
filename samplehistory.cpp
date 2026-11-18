@@ -43,6 +43,16 @@ void SampleHistory::trimToMaxSamples()
     }
 }
 
+int SampleHistory::minimumLevel() const
+{
+    return m_minimumLevel;
+}
+
+void SampleHistory::setMinimumLevel(int newMinimumLevel)
+{
+    m_minimumLevel = newMinimumLevel;
+}
+
 int SampleHistory::seriesCount() const
 {
     return m_series.size();

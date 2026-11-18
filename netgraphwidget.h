@@ -27,6 +27,8 @@ public:
     bool paused() const;
     enum DrawMode { DrawModeLines, DrawModeBars };
     void setUpdateIntervalNet(int newUpdateIntervalNet);
+    void setSampleHistory(SampleHistory *newSampleHistory);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -44,6 +46,7 @@ private:
         qint64 tx;
         //qint64 timestamp;
     };
+    SampleHistory *m_sampleHistory;
     QVector<DataPoint> m_history;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)

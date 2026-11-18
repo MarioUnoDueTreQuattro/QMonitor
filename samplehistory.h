@@ -32,6 +32,9 @@ public:
     // never lower than 'minimumValue' (avoids zooming in on noise)
     // double maxValueInLast(int visibleSamples, double minimumValue) const;
 
+    int minimumLevel() const;
+    void setMinimumLevel(int newMinimumLevel);
+
 signals:
     void historyChanged();   // emitted once per new sample, and after clear()
 
@@ -41,6 +44,7 @@ private:
     // One vector per series: drawing a series reads a single contiguous vector
 QVector< QVector<qint64> > m_series;
 int m_maxSamples;
+int m_minimumLevel;
 };
 
 #endif // SAMPLEHISTORY_H

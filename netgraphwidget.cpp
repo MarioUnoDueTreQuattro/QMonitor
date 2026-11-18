@@ -90,12 +90,14 @@ void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
         if (pt.rx > m_maxVal) m_maxVal = pt.rx;
         if (pt.tx > m_maxVal) m_maxVal = pt.tx;
     }
-    m_maxVal = static_cast<qint64>(m_maxVal * 1.1);
+    m_maxVal = static_cast<qint64>(m_maxVal * 1.05);
     update();
 }
 
 void NetGraphWidget::resetGraph()
 {
+    m_sampleHistory->clear();
+    m_sampleHistory->setMinimumLevel(1024);
     m_history.clear();
     m_maxVal = 1024; // Riporta la soglia al minimo iniziale (1 KB/s)
     update();
@@ -130,6 +132,17 @@ void NetGraphWidget::resizeEvent(QResizeEvent *event)
     {
         m_history.remove(0, m_history.size() - graphW);
     }
+    /*
+    if (m_sampleHistory != nullptr)
+    {
+        // qDebug() << "graphW: " << graphW;
+        // if (graphW > 10 && m_sampleHistory->sampleCount() > graphW)
+        // {
+        // m_sampleHistory->setMaxSamples(graphW);
+        // }
+        m_sampleHistory->setMaxSamples(graphW);
+    }
+    */
 }
 
 void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx,
@@ -153,6 +166,11 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
     }
     painter.setPen(pen);
     painter.drawPath(path);
+}
+
+void NetGraphWidget::setSampleHistory(SampleHistory *history)
+{
+    m_sampleHistory = history;
 }
 
 void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, bool isTray)
