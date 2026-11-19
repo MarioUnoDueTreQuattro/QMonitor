@@ -7,7 +7,6 @@
 #include <QFile>
 #include <QTextStream>
 #include <QRegularExpression>
-#include <QSettings>
 #include <QCloseEvent>
 #include <QWindow>
 #include <X11/Xlib.h>
@@ -468,6 +467,7 @@ void MainWindow::setWindowOpacityPercent(int percent)
     const int clamped = qBound(0, percent, 100);
     setWindowOpacity(clamped / 100.0);
 }
+
 void MainWindow::setWindowFrameless(bool frameless)
 {
     const bool bVisible = isVisible();

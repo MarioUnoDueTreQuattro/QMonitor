@@ -150,7 +150,9 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
 {
     if (m_maxVal <= 0)
         return;   // avoid division by zero
-    const double bottom = graphRect.top() + graphRect.height();
+    //const double bottom = graphRect.top() + graphRect.height();
+    const double bottom = graphRect.bottom(); // NON top + height
+    const double top = graphRect.top();
     QPainterPath path;
     for (int i = 0; i < m_history.size(); ++i)
     {
@@ -158,12 +160,21 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
         qint64 val = useRx ? m_history[i].rx : m_history[i].tx;
         double y = bottom - (static_cast<double>(val) / m_maxVal) * graphRect.height();
         // Keep the line inside the graph area
-        y = qBound(static_cast<double>(graphRect.top()), y, bottom);
+        // y = qBound(static_cast<double>(graphRect.top()), y, bottom);
+        y = qBound(top, y, bottom); // ora il bound inferiore è corretto
         if (i == 0)
             path.moveTo(x, y);
         else
             path.lineTo(x, y);
     }
+    /*
+        painter.save();
+        painter.setClipRect(graphRect);   // <-- taglia lo sbordamento della penna 1.5
+        painter.setPen(pen);
+        painter.drawPath(path);
+        painter.restore();
+
+        */
     painter.setPen(pen);
     painter.drawPath(path);
 }
@@ -192,6 +203,7 @@ void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool use
         qint64 val = useRx ? m_history[firstSample + i].rx : m_history[firstSample + i].tx;
         int barHeight = static_cast<int>(static_cast<double>(val) / maxTrayVal * graphRect.height());
         barHeight = qBound(0, barHeight, graphRect.height());
+        if (barHeight == 0) continue; // niente linea sul bordo per valori ~0
         int x = firstX + i;
         lines.append(QLine(x, bottom, x, bottom - barHeight));
     }
@@ -260,8 +272,9 @@ void NetGraphWidget::paintTrayBars(QPainter &painter, const QRect &graphRect,
             double value = history.valueAt(s, firstSample + i);
             int barHeight = static_cast<int>(value / maxValue * graphRect.height());
             barHeight = qBound(0, barHeight, graphRect.height());
+            if (barHeight == 0) continue; //avoid bottom line
             int x = firstX + i;
-            lines.append(QLine(x, bottom, x, bottom - barHeight));
+            lines.append(QLine(x, bottom, x, bottom - barHeight + 1));
         }
         painter.setPen(QPen(seriesColors.at(s), 1));
         painter.drawLines(lines);
@@ -321,7 +334,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     // }
     if (m_history.size() < 2) return;
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
-    double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
+    //double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
     QRect graphRect(graphX, graphY, graphW, graphH);
     if (m_drawMode == 0) painter.setRenderHint(QPainter::Antialiasing);
     else painter.setRenderHint(QPainter::Antialiasing, false);
@@ -332,6 +345,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     }
     else
     {
+        double stepX = static_cast<double>(graphRect.width() - 1) / (m_history.size() - 1);
         drawSeriesLines(painter, m_penRx, true, graphRect, stepX);
         drawSeriesLines(painter, m_penTx, false, graphRect, stepX);
     }

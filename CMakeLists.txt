@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 project(QMonitor LANGUAGES CXX)
-set(APP_VERSION "0.1.3")
+set(APP_VERSION "0.1.4")
 configure_file(version.h.in version.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -27,6 +27,7 @@ qt_add_executable(QMonitor
     about.cpp
     memoryreader.h memoryreader.cpp
     cpureader.h cpureader.cpp
+    graphform.h graphform.cpp graphform.ui
 
 )
 

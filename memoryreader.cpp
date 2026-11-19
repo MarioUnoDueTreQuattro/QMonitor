@@ -2,7 +2,6 @@
 #include <QFile>
 #include <cstdlib>
 
-// memoryreader.cpp (new or changed parts)
 double MemoryReader::readZramBytes(const QString &deviceName, bool zramPhysical)
 {
     // mm_stat fields: 0 = orig_data_size, 1 = compr_data_size, 2 = mem_used_total
