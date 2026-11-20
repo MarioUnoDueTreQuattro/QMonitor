@@ -37,7 +37,12 @@ private slots:
     void on_actionAbout_triggered();
     void settingsDialogAccepted();
     void trayIconNetActivated(QSystemTrayIcon::ActivationReason reason);
+    void trayIconCPUActivated(QSystemTrayIcon::ActivationReason reason);
+    void trayIconMemActivated(QSystemTrayIcon::ActivationReason reason);
     void toggleMainWindow();
+    void toggleNetWindow();
+    void toggleCPUWindow();
+    void toggleMemWindow();
     void quitApplication();
 private:
     Ui::MainWindow *ui;
@@ -57,6 +62,9 @@ private:
     // QAction *showHideAction;
     // QAction *quitAction;
     // QAction *actSettings;
+    QAction *m_actToggleNetWindow;
+    QAction *m_actToggleCPUWindow;
+    QAction *m_actToggleMemWindow;
     QAction *m_actToggleWindow;
     QAction *m_actPause;
     QAction *m_actSettings;
@@ -71,8 +79,8 @@ private:
     qint64 m_lastTx;
     qint64 m_lastTime = 0;
     bool readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes);
-    QString formatBytesNet(qint64 bytes);
-    QString formatBytes(qint64 bytes);
+    // QString formatBytesNet(qint64 bytes);
+    QString formatBytesToMB(qint64 bytes);
     bool m_MonitorNet;
     bool m_MonitorCPU;
     bool m_MonitorMemory;
@@ -99,7 +107,7 @@ private:
     qint64 m_netScaleBytes;
     void readColors();
     void createTrayActions();
-    QMenu *createTrayMenu();
+    QMenu *createTrayMenu(QAction *specificToggleAction);
     void createTrayIcons();
     void setNetworkInterface(const QString &interfaceName);
     QByteArray m_netInterfaceKey;

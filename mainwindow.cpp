@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "utils.h"
 #include "ui_mainwindow.h"
 #include "settings_dialog.h"
 #include "about.h"
@@ -128,6 +129,15 @@ bool MainWindow::isAnyGraphEnabled() const
 
 void MainWindow::createTrayActions()
 {
+    m_actToggleNetWindow = new QAction(tr("Hide/Show Net"), this);
+    m_actToggleCPUWindow = new QAction(tr("Hide/Show CPU"), this);
+    m_actToggleMemWindow = new QAction(tr("Hide/Show Memory"), this);
+    m_actToggleNetWindow->setIcon(QIcon::fromTheme("password-show-on"));
+    m_actToggleCPUWindow->setIcon(QIcon::fromTheme("password-show-on"));
+    m_actToggleMemWindow->setIcon(QIcon::fromTheme("password-show-on"));
+    m_actToggleNetWindow->setVisible(false);
+    m_actToggleCPUWindow->setVisible(false);
+    m_actToggleMemWindow->setVisible(false);
     m_actToggleWindow = new QAction(tr("Hide/Show"), this);
     m_actToggleWindow->setIcon(QIcon::fromTheme("password-show-on"));
     m_actPause = new QAction(tr("Pause"), this);
@@ -140,6 +150,9 @@ void MainWindow::createTrayActions()
     m_actAbout->setIcon(QIcon::fromTheme("QMonitor").pixmap(32, 32));
     m_actQuit = new QAction(tr("Exit"), this);
     m_actQuit->setIcon(QIcon::fromTheme("application-exit"));
+    connect(m_actToggleNetWindow, &QAction::triggered, this, &MainWindow::toggleNetWindow);
+    connect(m_actToggleCPUWindow, &QAction::triggered, this, &MainWindow::toggleCPUWindow);
+    connect(m_actToggleMemWindow, &QAction::triggered, this, &MainWindow::toggleMemWindow);
     connect(m_actToggleWindow, &QAction::triggered, this, &MainWindow::toggleMainWindow);
     connect(m_actPause, &QAction::triggered, this, &MainWindow::on_btnPause_clicked);
     connect(m_actSettings, &QAction::triggered, this, &MainWindow::on_actionSettings_triggered);
@@ -147,12 +160,16 @@ void MainWindow::createTrayActions()
     connect(m_actQuit, &QAction::triggered, this, &MainWindow::quitApplication);
 }
 
-QMenu *MainWindow::createTrayMenu()
+QMenu *MainWindow::createTrayMenu(QAction *specificToggleAction)
 {
     // Each tray icon needs its own QMenu: sharing one menu between several
     // QSystemTrayIcon objects breaks the D-Bus menu export (No id for action).
     // The QActions themselves can safely be shared.
     QMenu *menu = new QMenu(this);
+    if (specificToggleAction)
+    {
+        menu->addAction(specificToggleAction);
+    }
     menu->addAction(m_actToggleWindow);
     menu->addAction(m_actPause);
     menu->addSeparator();
@@ -173,11 +190,11 @@ void MainWindow::createTrayIcons()
     m_trayIconCPU->setIcon(windowIcon());
     m_trayIconRAM->setIcon(windowIcon());
     connect(m_trayIconNet, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconNetActivated);
-    m_trayIconNet->setContextMenu(createTrayMenu());
-    m_trayIconCPU->setContextMenu(createTrayMenu());
-    m_trayIconRAM->setContextMenu(createTrayMenu());
+    connect(m_trayIconCPU, &QSystemTrayIcon::activated, this, &MainWindow::trayIconCPUActivated);
+    connect(m_trayIconRAM, &QSystemTrayIcon::activated, this, &MainWindow::trayIconMemActivated);
+    m_trayIconNet->setContextMenu(createTrayMenu(m_actToggleNetWindow));
+    m_trayIconCPU->setContextMenu(createTrayMenu(m_actToggleCPUWindow));
+    m_trayIconRAM->setContextMenu(createTrayMenu(m_actToggleMemWindow));
     if (m_MonitorNet) m_trayIconNet->show();
     if (m_MonitorCPU) m_trayIconCPU->show();
     if (m_MonitorMemory) m_trayIconRAM->show();
@@ -203,6 +220,7 @@ void MainWindow::setNetworkInterface(const QString &interfaceName)
 
 void MainWindow::toggleMainWindow()
 {
+    qDebug() << __PRETTY_FUNCTION__ ;
     if (isVisible())
     {
         hide();
@@ -215,6 +233,21 @@ void MainWindow::toggleMainWindow()
         activateWindow();
         settings->setValue("MainWinVisible", true);
     }
+}
+
+void MainWindow::toggleNetWindow()
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+}
+
+void MainWindow::toggleCPUWindow()
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+}
+
+void MainWindow::toggleMemWindow()
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
 }
 
 void MainWindow::quitApplication()
@@ -556,9 +589,9 @@ void MainWindow::sampleMemory()
     values << snapshot.ramUsedBytes << snapshot.zramUsedBytes << snapshot.swapUsedBytes;
     m_memoryHistory->addSample(values);   // emits historyChanged() after the scale is updated
     m_trayIconRAM->setIcon(ui->netGraph->renderTrayPixmap(*m_memoryHistory, colors_ram, m_memoryScaleBytes, m_trayIconsSize));
-    QString sMemory = QString("RAM used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(0)));
-    sMemory.append(QString("Swap used: %1\n").arg(formatBytes(m_memoryHistory->latestValue(2))));
-    sMemory.append(QString("ZRam used: %1").arg(formatBytes(m_memoryHistory->latestValue(1))));
+    QString sMemory = QString("RAM used: %1\n").arg(formatBytesToMB(m_memoryHistory->latestValue(0)));
+    sMemory.append(QString("Swap used: %1\n").arg(formatBytesToMB(m_memoryHistory->latestValue(2))));
+    sMemory.append(QString("ZRam used: %1").arg(formatBytesToMB(m_memoryHistory->latestValue(1))));
     m_trayIconRAM->setToolTip(sMemory);
 }
 
@@ -622,8 +655,8 @@ void MainWindow::updateStats()
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
-            QString s_rxSpeed = formatBytesNet(rxSpeed);
-            QString s_txSpeed = formatBytesNet(txSpeed);
+            QString s_rxSpeed = Utils::formatBytes(rxSpeed)+ "/s";
+            QString s_txSpeed =  Utils::formatBytes(txSpeed)+ "/s";
             // 1. Aggiornamento della velocità istantanea
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
@@ -655,15 +688,15 @@ void MainWindow::updateStats()
                     if (ui->labelAvg)
                     {
                         ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
-                            .arg(formatBytesNet(ui->netGraph->getAvgRx()))
-                            .arg(formatBytesNet(ui->netGraph->getAvgTx())));
+                            .arg( Utils::formatBytes(ui->netGraph->getAvgRx()))
+                            .arg( Utils::formatBytes(ui->netGraph->getAvgTx())));
                     }
                     // 3. Aggiornamento della velocità massima (picco storico)
                     if (ui->labelMax)
                     {
                         ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
-                            .arg(formatBytesNet(ui->netGraph->getMaxRx()))
-                            .arg(formatBytesNet(ui->netGraph->getMaxTx())));
+                            .arg( Utils::formatBytes(ui->netGraph->getMaxRx()))
+                            .arg( Utils::formatBytes(ui->netGraph->getMaxTx())));
                     }
                 }
             }
@@ -783,14 +816,22 @@ bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint6
     return false;
 }
 */
+/*
 QString MainWindow::formatBytesNet(qint64 bytes)
 {
-    if (bytes < 1024) return QString("%1 B/s").arg(bytes);
-    if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
-    return QString("%1 MB/s").arg(bytes / (BYTES_PER_MB), 0, 'f', 1);
+    // if (bytes < 1024) return QString("%1 B/s").arg(bytes);
+    // if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
+    // return QString("%1 MB/s").arg(bytes / (BYTES_PER_MB), 0, 'f', 1);
+    if (bytes < 1024) return QString("%1 B").arg(bytes);
+    const bool isKb = bytes < BYTES_PER_MB;
+    const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
+    const char *unit = isKb ? "KB" : "MB";
+    if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
+    return QString("%1 %2").arg(qRound(value)).arg(unit);
 }
+*/
 
-QString MainWindow::formatBytes(qint64 bytes)
+QString MainWindow::formatBytesToMB(qint64 bytes)
 {
     return QString("%1 MB").arg(bytes / (BYTES_PER_MB), 0, 'f', 0);
 }
@@ -912,6 +953,19 @@ void MainWindow::settingsDialogAccepted()
 
 void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
 {
+    qDebug() << __PRETTY_FUNCTION__ ;
+    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
+}
+
+void MainWindow::trayIconCPUActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
+}
+
+void MainWindow::trayIconMemActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
     if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
 }
 

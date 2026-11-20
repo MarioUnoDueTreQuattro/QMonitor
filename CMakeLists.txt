@@ -28,6 +28,7 @@ qt_add_executable(QMonitor
     memoryreader.h memoryreader.cpp
     cpureader.h cpureader.cpp
     graphform.h graphform.cpp graphform.ui
+    utils.h utils.cpp
 
 )
 

@@ -51,7 +51,7 @@ private:
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
     bool m_paused = false;
-    QString formatBytes(qint64 bytes) const;
+    // QString formatBytes(qint64 bytes) const;
     QFont m_gridFont;
     QPen m_penRx{QColor(0, 211, 10), 1.5};
     QPen m_penTx{QColor(255, 57, 0), 1.5};
@@ -60,6 +60,7 @@ private:
     QPen m_labelPen{QColor(160, 160, 160)};
     qint64 getTrayVisibleMax(int visibleSamples) const;
     int m_updateIntervalNet;
+    static constexpr double BYTES_PER_MB = 1024.0 * 1024.0;   // 1 048 576.0
 signals:
     void settingsRequested(); // custom signal
     void aboutRequested(); // custom signal

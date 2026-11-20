@@ -1,4 +1,5 @@
 #include "netgraphwidget.h"
+#include "utils.h"
 #include <QPainter>
 #include <QPen>
 #include <QColor>
@@ -13,8 +14,7 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
 {
     setMinimumSize(80, 60);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, &QWidget::customContextMenuRequested,
-        this, &NetGraphWidget::showContextMenu);
+    connect(this, &QWidget::customContextMenuRequested, this, &NetGraphWidget::showContextMenu);
     m_gridFont = QFont("SansSerif", 8);
     m_updateIntervalNet = 2000;
 }
@@ -72,7 +72,7 @@ void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
     //qint64 now = QDateTime::currentMSecsSinceEpoch() / m_updateIntervalNet;
     m_history.append({rxSpeed, txSpeed});
     // Calcoliamo lo spazio disponibile per adattare lo storico ai pixel correnti
-    int marginLeft = 60;
+    int marginLeft = 50;
     int marginRight = 0;
     int graphW = width() - marginLeft - marginRight;
     // Se la larghezza è valida, tronchiamo lo storico in eccesso per mantenere 1 punto = 1 pixel
@@ -109,6 +109,17 @@ void NetGraphWidget::setPaused(bool paused)
     emit pauseStateChanged();
 }
 
+// QString NetGraphWidget::formatBytes(qint64 bytes) const
+// {
+//     if (bytes < 1024) return QString("%1 B").arg(bytes);
+//     const bool isKb = bytes < BYTES_PER_MB;
+//     const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
+//     const char *unit = isKb ? "KB" : "MB";
+//     if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
+//     return QString("%1 %2").arg(qRound(value)).arg(unit);
+// }
+
+/*
 QString NetGraphWidget::formatBytes(qint64 bytes) const
 {
     if (bytes < 1024)
@@ -119,13 +130,14 @@ QString NetGraphWidget::formatBytes(qint64 bytes) const
         return QString("%1 MB").arg(bytes / (1024.0 * 1024.0), 0, 'f', 1);
     return QString("%1 GB").arg(bytes / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
 }
+*/
 
 void NetGraphWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     // Quando la finestra viene ridimensionata, tronchiamo subito lo storico
     // se eccede la nuova larghezza disponibile
-    int marginLeft = 60;
+    int marginLeft = 50;
     int marginRight = 0;
     int graphW = width() - marginLeft - marginRight;
     if (graphW > 10 && m_history.size() > graphW)
@@ -292,7 +304,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing, false);
     int w = width();
     int h = height();
-    int marginLeft = 60;
+    int marginLeft = 50;
     int marginRight = 0;
     int marginTop = 5;
     int marginBottom = 0;
@@ -321,7 +333,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         int y = graphY + (graphH * i / hDivisions);
         if (i != 0) painter.drawLine(graphX, y, graphX + graphW, y);
         qint64 val = m_maxVal - (m_maxVal * i / hDivisions);
-        QString label = formatBytes(val) + "/s";
+        QString label =  Utils::formatBytes(val) /*+ "/s"*/;
         painter.setPen(m_labelPen);
         if (i != hDivisions) painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
         painter.setPen(m_gridPen);
