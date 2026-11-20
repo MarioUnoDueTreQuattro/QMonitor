@@ -12,6 +12,8 @@ QString Utils::formatBytes(qint64 bytes)
     const double value = isKb ? bytes / BYTES_PER_KB : bytes / BYTES_PER_MB;
     if (value < DECIMAL_THRESHOLD)
     {
+        const int rounded10 = qRound(value * 10.0);
+        if ((rounded10 % 10) == 0) return QString::number(rounded10 / 10) + (isKb ? " KB" : " MB");
         return QString::number(value, 'f', 1) + (isKb ? " KB" : " MB");
     }
     return QString::number(qRound(value)) + (isKb ? " KB" : " MB");
