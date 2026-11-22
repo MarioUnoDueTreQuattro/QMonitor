@@ -119,11 +119,9 @@ void GraphForm::showEvent(QShowEvent *event)
         m_geometryRestored = true;
         restoreGeometry(settings->value("geometry" + this->windowTitle()).toByteArray());
     }
-    QPointer<GraphForm> self(this);
-    QTimer::singleShot(200, this, [self]()
+    QTimer::singleShot(200, this, [this]()
     {
-        if (!self) return;   // oggetto distrutto nel frattempo
-        self->updateX11SkipTaskbar();
+        updateX11SkipTaskbar();
     });
 }
 
