@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QSettings>
 #include <QSystemTrayIcon>
+#include "graphform.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -46,6 +47,9 @@ private slots:
     void quitApplication();
 private:
     Ui::MainWindow *ui;
+    GraphForm *m_netForm;
+    GraphForm *m_cpuForm;
+    GraphForm *m_memForm;
     bool isAnyGraphEnabled() const;
     QPoint m_dragPosition;
     QPoint m_dragStartPosition;

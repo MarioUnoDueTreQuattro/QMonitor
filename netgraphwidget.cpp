@@ -111,12 +111,12 @@ void NetGraphWidget::setPaused(bool paused)
 
 // QString NetGraphWidget::formatBytes(qint64 bytes) const
 // {
-//     if (bytes < 1024) return QString("%1 B").arg(bytes);
-//     const bool isKb = bytes < BYTES_PER_MB;
-//     const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
-//     const char *unit = isKb ? "KB" : "MB";
-//     if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
-//     return QString("%1 %2").arg(qRound(value)).arg(unit);
+// if (bytes < 1024) return QString("%1 B").arg(bytes);
+// const bool isKb = bytes < BYTES_PER_MB;
+// const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
+// const char *unit = isKb ? "KB" : "MB";
+// if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
+// return QString("%1 %2").arg(qRound(value)).arg(unit);
 // }
 
 /*
@@ -325,18 +325,41 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     //QPen gridPen(QColor(55, 55, 55), 1, Qt::DashLine);
     painter.setPen(m_borderPen);
     painter.drawRect(graphX, graphY, graphW - 1, graphH - 1);
-    painter.setPen(m_gridPen);
+    //painter.setPen(m_gridPen);
     painter.setFont(m_gridFont);
     int hDivisions = 4;
-    for (int i = 0; i <= hDivisions; ++i)
+    // Fase 1: linee della griglia orizzontale
+    painter.setPen(m_gridPen);
+    for (int i = 1; i < hDivisions; ++i)   // parte da 1: la linea i=0 non si disegna
     {
-        int y = graphY + (graphH * i / hDivisions);
-        if (i != 0) painter.drawLine(graphX, y, graphX + graphW, y);
+        const int y = graphY + (graphH * i / hDivisions);
+        painter.drawLine(graphX, y, graphX + graphW, y);
+    }
+    QString label;
+    painter.setPen(m_labelPen);
+    for (int i = 0; i < hDivisions; ++i)
+    {
+        const int y = graphY + (graphH * i / hDivisions);
+        //if (i != 0) painter.drawLine(graphX, y, graphX + graphW, y);
         qint64 val = m_maxVal - (m_maxVal * i / hDivisions);
-        QString label =  Utils::formatBytes(val) /*+ "/s"*/;
-        painter.setPen(m_labelPen);
-        if (i != hDivisions) painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
-        painter.setPen(m_gridPen);
+        switch (m_unitMode)
+        {
+            case UnitMode::UnitModeNet:
+                label = Utils::formatBytes(val) /*+ "/s"*/;
+                break;
+            case UnitMode::UnitModePercent:
+                label = QString::number(val) + "%";
+                break;
+            case UnitMode::UnitModeMemory:
+                label = QString::number(val) + " MB";
+                break;
+            // default:
+            //     break;
+        }
+        // if (m_unitMode == static_cast<int>(UnitMode::UnitModeNet)) label = Utils::formatBytes(val) /*+ "/s"*/;
+        // painter.setPen(m_labelPen);
+        /*if (i != hDivisions) */painter.drawText(QRect(5, y - 8, marginLeft - 10, 16), Qt::AlignRight | Qt::AlignVCenter, label);
+        //painter.setPen(m_gridPen);
     }
     // int vDivisions = 6;
     // for (int i = 0; i <= vDivisions; ++i)
@@ -348,9 +371,9 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     //double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
     QRect graphRect(graphX, graphY, graphW, graphH);
-    if (m_drawMode == 0) painter.setRenderHint(QPainter::Antialiasing);
+    if (m_drawMode == DrawMode::DrawModeLines) painter.setRenderHint(QPainter::Antialiasing);
     else painter.setRenderHint(QPainter::Antialiasing, false);
-    if (m_drawMode == DrawModeBars)
+    if (m_drawMode == DrawMode::DrawModeBars)
     {
         drawSeriesBars(painter, m_penRx, true, graphRect, false);
         drawSeriesBars(painter, m_penTx, false, graphRect, false);
@@ -405,12 +428,13 @@ qint64 NetGraphWidget::getAvgTx() const
     return sum / m_history.size();
 }
 
-void NetGraphWidget::setDrawMode(int newMode)
+void NetGraphWidget::setDrawMode(DrawMode newMode)
 {
     // if (newMode == m_drawMode)
     // return;
-    m_drawMode = static_cast<DrawMode>(newMode);
-    if (m_drawMode == 0)
+    // m_drawMode = static_cast<DrawMode>(newMode);
+    m_drawMode = newMode;
+    if (m_drawMode == DrawMode::DrawModeLines)
     {
         m_penRx.setWidth(1.5);
         m_penTx.setWidth(1.5);
@@ -420,6 +444,14 @@ void NetGraphWidget::setDrawMode(int newMode)
         m_penRx.setWidth(1);
         m_penTx.setWidth(1);
     }
+    update();
+}
+
+void NetGraphWidget::setUnitMode(UnitMode newMode)
+{
+    m_unitMode = newMode;
+    if (m_unitMode == NetGraphWidget::UnitMode::UnitModePercent) m_maxVal = 100;
+    // else m_maxVal = m_sampleHistory->maxValueInLast(m_sampleHistory->sampleCount(), 0);
     update();
 }
 

@@ -23,14 +23,24 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setNetworkInterface(m_iface);
+    m_netForm=new GraphForm(this);
+    m_cpuForm=new GraphForm(this);
+    m_memForm=new GraphForm(this);
+    m_netForm->setWindowFlags(Qt::Window);
+    m_cpuForm->setWindowFlags(Qt::Window);
+    m_memForm->setWindowFlags(Qt::Window);
+    m_netForm->setWindowTitle("Network");
+    m_cpuForm->setWindowTitle("CPU");
+    m_memForm->setWindowTitle("Memory");
+    m_netForm->setUnit(NetGraphWidget::UnitMode::UnitModeNet);
+    m_cpuForm->setUnit(NetGraphWidget::UnitMode::UnitModePercent);
+    m_memForm->setUnit(NetGraphWidget::UnitMode::UnitModeMemory);
+
     m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
     ui->netGraph->setSampleHistory(m_networkHistory);
-    // colors_net = new QVector<QColor>();
-    // colors_cpu = new QVector<QColor>();
-    // colors_ram = new QVector<QColor>();
-    setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
+    // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
     m_MonitorNet = settings->value("MonitorNet", true).toBool();
@@ -117,9 +127,6 @@ MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
-    // delete colors_net;
-    // delete colors_cpu;
-    // delete colors_ram;
 }
 
 bool MainWindow::isAnyGraphEnabled() const
@@ -135,9 +142,9 @@ void MainWindow::createTrayActions()
     m_actToggleNetWindow->setIcon(QIcon::fromTheme("password-show-on"));
     m_actToggleCPUWindow->setIcon(QIcon::fromTheme("password-show-on"));
     m_actToggleMemWindow->setIcon(QIcon::fromTheme("password-show-on"));
-    m_actToggleNetWindow->setVisible(false);
-    m_actToggleCPUWindow->setVisible(false);
-    m_actToggleMemWindow->setVisible(false);
+    // m_actToggleNetWindow->setVisible(false);
+    // m_actToggleCPUWindow->setVisible(false);
+    // m_actToggleMemWindow->setVisible(false);
     m_actToggleWindow = new QAction(tr("Hide/Show"), this);
     m_actToggleWindow->setIcon(QIcon::fromTheme("password-show-on"));
     m_actPause = new QAction(tr("Pause"), this);
@@ -218,6 +225,24 @@ void MainWindow::setNetworkInterface(const QString &interfaceName)
     m_netInterfaceKey = interfaceName.toLatin1() + ':';
 }
 
+void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
+}
+
+void MainWindow::trayIconCPUActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+    if (reason == QSystemTrayIcon::Trigger) toggleCPUWindow();
+}
+
+void MainWindow::trayIconMemActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    qDebug() << __PRETTY_FUNCTION__ ;
+    if (reason == QSystemTrayIcon::Trigger) toggleMemWindow();
+}
+
 void MainWindow::toggleMainWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
@@ -235,12 +260,24 @@ void MainWindow::toggleMainWindow()
     }
 }
 
-void MainWindow::toggleNetWindow()
+void MainWindow::toggleCPUWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
+    if (m_cpuForm->isVisible())
+    {
+        m_cpuForm->hide();
+        settings->setValue("WinVisibleCPU", false);
+    }
+    else
+    {
+        m_cpuForm->show();
+        m_cpuForm->raise();
+        m_cpuForm->activateWindow();
+        settings->setValue("WinVisibleCPU", true);
+    }
 }
 
-void MainWindow::toggleCPUWindow()
+void MainWindow::toggleNetWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
 }
@@ -248,6 +285,18 @@ void MainWindow::toggleCPUWindow()
 void MainWindow::toggleMemWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
+    if (m_memForm->isVisible())
+    {
+        m_memForm->hide();
+        settings->setValue("WinVisibleMem", false);
+    }
+    else
+    {
+        m_memForm->show();
+        m_memForm->raise();
+        m_memForm->activateWindow();
+        settings->setValue("WinVisibleMem", true);
+    }
 }
 
 void MainWindow::quitApplication()
@@ -332,6 +381,11 @@ void MainWindow::showEvent(QShowEvent *event)
     {
         updateX11SkipTaskbar();
     });
+    // Ripristina la geometria della finestra
+    restoreGeometry(settings->value("geometry").toByteArray());
+    // Ripristina lo stato di barre degli strumenti e pannelli agganciati
+    restoreState(settings->value("windowState").toByteArray());
+
 }
 
 void MainWindow::updateX11SkipTaskbar()
@@ -382,7 +436,7 @@ void MainWindow::readSettings()
     bool bIsVisible = settings->value("MainWinVisible", true).toBool();
     if (!bIsVisible)
     {
-        QTimer::singleShot(1000, this, &MainWindow::hide);
+        QTimer::singleShot(500, this, &MainWindow::hide);
     }
     bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     setWindowFrameless(bTitle);
@@ -574,7 +628,7 @@ void MainWindow::sampleCpu()
     m_cpuHistory->addSample(values);   // scale is fixed at 100
     //qDebug() << __PRETTY_FUNCTION__ << values;
     m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(*m_cpuHistory, colors_cpu, 100, m_trayIconsSize));
-    m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));
+    m_trayIconCPU->setToolTip(QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0)));    
 }
 
 void MainWindow::sampleMemory()
@@ -907,9 +961,10 @@ void MainWindow::setNetGraphSettings()
     ui->netGraph->setUploadColor(defaultColor);
     bool bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
     //if (bDrawModeLines) ui->netGraph->setDrawMode(0); else ui->netGraph->setDrawMode(1);
-    ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawModeLines : NetGraphWidget::DrawModeBars);
+    ui->netGraph->setDrawMode(bDrawModeLines ? NetGraphWidget::DrawMode::DrawModeLines : NetGraphWidget::DrawMode::DrawModeBars);
     readColors();
 }
+
 void MainWindow::settingsDialogAccepted()
 {
     qDebug() << __PRETTY_FUNCTION__;
@@ -949,24 +1004,6 @@ void MainWindow::settingsDialogAccepted()
     m_iface = savedDevice;
     setNetworkInterface(m_iface);
     setNetGraphSettings();
-}
-
-void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
-{
-    qDebug() << __PRETTY_FUNCTION__ ;
-    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
-}
-
-void MainWindow::trayIconCPUActivated(QSystemTrayIcon::ActivationReason reason)
-{
-    qDebug() << __PRETTY_FUNCTION__ ;
-    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
-}
-
-void MainWindow::trayIconMemActivated(QSystemTrayIcon::ActivationReason reason)
-{
-    qDebug() << __PRETTY_FUNCTION__ ;
-    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
 }
 
 void MainWindow::on_actionAbout_triggered()

@@ -12,12 +12,15 @@ class NetGraphWidget : public QWidget
     Q_OBJECT
 public:
     explicit NetGraphWidget(QWidget *parent = nullptr);
+    enum class DrawMode { DrawModeLines, DrawModeBars };
+    enum class UnitMode { UnitModeNet, UnitModePercent, UnitModeMemory };
     void addData(qint64 rxSpeed, qint64 txSpeed);
     void resetGraph();
     void setPaused(bool);
     void setDownloadColor(const QColor &newColor);
     void setUploadColor(const QColor &newColor);
-    void setDrawMode(int newMode);
+    void setDrawMode(DrawMode newMode);
+    void setUnitMode(UnitMode newMode);
     QPixmap renderTrayIcon(int size);
     static QPixmap renderTrayPixmap(SampleHistory &history, QVector<QColor> &colors, double maxValue, int size);
     qint64 getMaxRx() const;
@@ -25,7 +28,6 @@ public:
     qint64 getAvgRx() const;
     qint64 getAvgTx() const;
     bool paused() const;
-    enum DrawMode { DrawModeLines, DrawModeBars };
     void setUpdateIntervalNet(int newUpdateIntervalNet);
     void setSampleHistory(SampleHistory *newSampleHistory);
 
@@ -35,7 +37,8 @@ protected:
 private slots:
     void showContextMenu(const QPoint &pos);
 private:
-    DrawMode m_drawMode = DrawModeLines;
+    DrawMode m_drawMode = DrawMode::DrawModeLines;
+    UnitMode m_unitMode = UnitMode::UnitModeNet;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
         const QRect &graphRect, bool isTray);
     static void paintTrayBars(QPainter &painter, const QRect &graphRect, const SampleHistory &history, const QVector<QColor> &seriesColors, double maxValue);

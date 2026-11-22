@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QSettings>
+#include "netgraphwidget.h"
 
 namespace Ui
 {
@@ -16,6 +17,7 @@ class GraphForm : public QWidget
 public:
     explicit GraphForm(QWidget *parent = nullptr);
     ~GraphForm();
+    void setUnit(NetGraphWidget::UnitMode unit);
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
@@ -30,9 +32,11 @@ private:
     QPoint m_dragStartPosition;
     bool m_isDragging = false;
     bool m_isQuitting = false;
+    bool m_geometryRestored = false;
     void updateX11SkipTaskbar();
     void setWindowOpacityPercent(int percent);
 
+    void readSettings();
 };
 
 #endif // GRAPHFORM_H

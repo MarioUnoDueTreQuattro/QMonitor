@@ -15,8 +15,7 @@ GraphForm::GraphForm(QWidget *parent) :
     ui->labelAvg->setText("");
     ui->labelMax->setText("");
     ui->labelCurrent->setText("");
-
-
+    readSettings();
 }
 
 GraphForm::~GraphForm()
@@ -26,14 +25,15 @@ GraphForm::~GraphForm()
 
 void GraphForm::closeEvent(QCloseEvent *event)
 {
+    qDebug() << __PRETTY_FUNCTION__;
     if (m_isQuitting)
     {
         if (true)//(isVisible())
         {
-            settings->setValue("geometry", saveGeometry());
+            settings->setValue("geometry" + this->windowTitle(), saveGeometry());
             //settings->setValue("windowState", saveState());
         }
-        settings->setValue("MainWinVisible", isVisible());
+        settings->setValue("WinVisible" + this->windowTitle(), isVisible());
         event->accept();
         return;
     }
@@ -41,11 +41,40 @@ void GraphForm::closeEvent(QCloseEvent *event)
     // m_trayIcon->hide();
     // QMainWindow::closeEvent(event);
     // event->accept();
-    settings->setValue("geometry", saveGeometry());
+    settings->setValue("geometry" + this->windowTitle(), saveGeometry());
     //settings->setValue("windowState", saveState());
-    settings->setValue("MainWinVisible", false);
+    settings->setValue("WinVisible" + this->windowTitle(), false);
     hide();
     event->ignore();
+}
+
+void GraphForm::readSettings()
+{
+    qDebug() << __PRETTY_FUNCTION__;
+    // m_bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
+    // ui->labelAvg->setVisible(m_bShowAvgMax);
+    // ui->labelMax->setVisible(m_bShowAvgMax);
+    bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
+    if (!bIsVisible)
+    {
+        QTimer::singleShot(1000, this, &GraphForm::hide);
+    }
+    // bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
+    // setWindowFrameless(bTitle);
+    // int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
+    // setWindowOpacityPercent(iWindowOpacity);
+    // bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    // setWindowAlwaysOnTop(alwaysOnTop);
+    // bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
+    // setWindowShowInTaskbar(!bHideInTaskbar);
+    // QString savedDevice = settings->value("NetworkDevice", "wlp2s0").toString();
+    // m_iface = savedDevice;
+    // setNetworkInterface(m_iface);
+    // setNetGraphSettings();
+    // Ripristina la geometria della finestra
+    //restoreGeometry(settings->value("geometry" + this->windowTitle()).toByteArray());
+    // Ripristina lo stato di barre degli strumenti e pannelli agganciati
+    // restoreState(settings->value("windowState"+this->windowTitle()).toByteArray());
 }
 
 void GraphForm::mousePressEvent(QMouseEvent *event)
@@ -82,6 +111,22 @@ void GraphForm::mouseMoveEvent(QMouseEvent *event)
     QWidget::mouseMoveEvent(event);
 }
 
+void GraphForm::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    if (!m_geometryRestored)
+    {
+        m_geometryRestored = true;
+        restoreGeometry(settings->value("geometry" + this->windowTitle()).toByteArray());
+    }
+    QPointer<GraphForm> self(this);
+    QTimer::singleShot(200, this, [self]()
+    {
+        if (!self) return;   // oggetto distrutto nel frattempo
+        self->updateX11SkipTaskbar();
+    });
+}
+
 void GraphForm::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
@@ -90,16 +135,6 @@ void GraphForm::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     QWidget::mouseReleaseEvent(event);
-}
-
-void GraphForm::showEvent(QShowEvent *event)
-{
-    QWidget::showEvent(event);
-    // Delay the EWMH state enforcement slightly to ensure Openbox has fully mapped the window
-    QTimer::singleShot(200, this, [this]()
-    {
-        //updateX11SkipTaskbar();
-    });
 }
 
 void GraphForm::updateX11SkipTaskbar()
@@ -147,4 +182,9 @@ void GraphForm::setWindowOpacityPercent(int percent)
     if (percent < 10) percent = 10;
     const int clamped = qBound(0, percent, 100);
     setWindowOpacity(clamped / 100.0);
+}
+
+void GraphForm::setUnit(NetGraphWidget::UnitMode unit)
+{
+    ui->netGraph->setUnitMode(unit);
 }
