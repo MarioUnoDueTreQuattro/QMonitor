@@ -18,6 +18,12 @@ public:
     explicit GraphForm(QWidget *parent = nullptr);
     ~GraphForm();
     void setUnit(NetGraphWidget::UnitMode unit);
+    void setSampleHistory(SampleHistory *newSampleHistory);
+
+    void setColors(const QVector<QColor> &newColors);
+
+    void setMaxVal(qint64 newMaxVal);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
@@ -30,6 +36,10 @@ private:
     QSettings *settings;
     QPoint m_dragPosition;
     QPoint m_dragStartPosition;
+    SampleHistory *m_sampleHistory;
+    QVector<QColor> m_colors;
+    qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
+
     bool m_isDragging = false;
     bool m_isQuitting = false;
     bool m_geometryRestored = false;

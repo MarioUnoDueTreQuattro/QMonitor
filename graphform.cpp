@@ -135,6 +135,24 @@ void GraphForm::mouseReleaseEvent(QMouseEvent *event)
     QWidget::mouseReleaseEvent(event);
 }
 
+void GraphForm::setMaxVal(qint64 newMaxVal)
+{
+    m_maxVal = newMaxVal;
+    ui->netGraph->setMaxVal(m_maxVal);
+}
+
+void GraphForm::setColors(const QVector<QColor> &newColors)
+{
+    m_colors = newColors;
+    ui->netGraph->setColors(m_colors);
+}
+
+void GraphForm::setSampleHistory(SampleHistory *newSampleHistory)
+{
+    m_sampleHistory = newSampleHistory;
+    ui->netGraph->setSampleHistory(m_sampleHistory);
+}
+
 void GraphForm::updateX11SkipTaskbar()
 {
     if (!isVisible())
@@ -186,3 +204,4 @@ void GraphForm::setUnit(NetGraphWidget::UnitMode unit)
 {
     ui->netGraph->setUnitMode(unit);
 }
+

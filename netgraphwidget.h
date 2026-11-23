@@ -31,6 +31,10 @@ public:
     void setUpdateIntervalNet(int newUpdateIntervalNet);
     void setSampleHistory(SampleHistory *newSampleHistory);
 
+    void setColors(const QVector<QColor> &newColors);
+
+    void setMaxVal(qint64 newMaxVal);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -39,8 +43,10 @@ private slots:
 private:
     DrawMode m_drawMode = DrawMode::DrawModeLines;
     UnitMode m_unitMode = UnitMode::UnitModeNet;
-    void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx,
-        const QRect &graphRect, bool isTray);
+    void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, bool isTray);
+    void drawSeriesBars2(QPainter &painter, const QRect &graphRect,
+                         const SampleHistory &history,
+                         const QVector<QColor> &seriesColors, double maxValue);
     static void paintTrayBars(QPainter &painter, const QRect &graphRect, const SampleHistory &history, const QVector<QColor> &seriesColors, double maxValue);
     void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
@@ -50,6 +56,7 @@ private:
         //qint64 timestamp;
     };
     SampleHistory *m_sampleHistory;
+    QVector<QColor> m_colors;
     QVector<DataPoint> m_history;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)

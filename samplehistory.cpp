@@ -84,3 +84,15 @@ qint64 SampleHistory::maxValueInLast(int visibleSamples, qint64 minimumValue) co
     }
     return maxValue;
 }
+
+qint64 SampleHistory::maxValue() const
+{
+    qint64 maxValue = 0;
+    for (int s = 0; s < m_series.size(); ++s)
+    {
+        const QVector<qint64> &series = m_series.at(s);
+        for (int i = 0; i < series.size(); ++i)
+            maxValue = qMax(maxValue, series.at(i));
+    }
+    return maxValue;
+}

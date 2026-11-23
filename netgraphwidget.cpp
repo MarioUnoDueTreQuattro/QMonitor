@@ -72,7 +72,7 @@ void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
     //qint64 now = QDateTime::currentMSecsSinceEpoch() / m_updateIntervalNet;
     m_history.append({rxSpeed, txSpeed});
     // Calcoliamo lo spazio disponibile per adattare lo storico ai pixel correnti
-    int marginLeft = 50;
+    int marginLeft = 55;
     int marginRight = 0;
     int graphW = width() - marginLeft - marginRight;
     // Se la larghezza è valida, tronchiamo lo storico in eccesso per mantenere 1 punto = 1 pixel
@@ -90,7 +90,7 @@ void NetGraphWidget::addData(qint64 rxSpeed, qint64 txSpeed)
         if (pt.rx > m_maxVal) m_maxVal = pt.rx;
         if (pt.tx > m_maxVal) m_maxVal = pt.tx;
     }
-    m_maxVal = static_cast<qint64>(m_maxVal * 1.05);
+    //m_maxVal = static_cast<qint64>(m_maxVal * 1.05);
     update();
 }
 
@@ -137,14 +137,13 @@ void NetGraphWidget::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
     // Quando la finestra viene ridimensionata, tronchiamo subito lo storico
     // se eccede la nuova larghezza disponibile
-    int marginLeft = 50;
+    int marginLeft = 55;
     int marginRight = 0;
     int graphW = width() - marginLeft - marginRight;
     if (graphW > 10 && m_history.size() > graphW)
     {
         m_history.remove(0, m_history.size() - graphW);
     }
-    /*
     if (m_sampleHistory != nullptr)
     {
         // qDebug() << "graphW: " << graphW;
@@ -154,7 +153,6 @@ void NetGraphWidget::resizeEvent(QResizeEvent *event)
         // }
         m_sampleHistory->setMaxSamples(graphW);
     }
-    */
 }
 
 void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx,
@@ -191,6 +189,16 @@ void NetGraphWidget::drawSeriesLines(QPainter &painter, const QPen &pen, bool us
     painter.drawPath(path);
 }
 
+void NetGraphWidget::setMaxVal(qint64 newMaxVal)
+{
+    m_maxVal = newMaxVal;
+}
+
+void NetGraphWidget::setColors(const QVector<QColor> &newColors)
+{
+    m_colors = newColors;
+}
+
 void NetGraphWidget::setSampleHistory(SampleHistory *history)
 {
     m_sampleHistory = history;
@@ -223,6 +231,37 @@ void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool use
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setPen(pen);
     painter.drawLines(lines);
+}
+
+void NetGraphWidget::drawSeriesBars2(QPainter &painter, const QRect &graphRect,
+                                     const SampleHistory &history,
+                                     const QVector<QColor> &seriesColors, double maxValue)
+{
+    if (m_maxVal <= 0 || history.sampleCount()== 0)
+        return;
+    // qDebug() << "history.sampleCount():" << history.sampleCount();
+    const int bottom = graphRect.bottom();
+    const int samplesToDraw = qMin(history.sampleCount(), graphRect.width());
+    // qDebug() << "samplesToDraw:" << samplesToDraw;
+    const int firstSample = history.sampleCount() - samplesToDraw;
+    const int firstX = graphRect.right() - samplesToDraw + 1;
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    for (int s = 0; s < history.seriesCount() && s < seriesColors.size(); ++s)
+    {
+        QVector<QLine> lines;
+        lines.reserve(samplesToDraw);
+        for (int i = 0; i < samplesToDraw; ++i)
+        {
+            double value = history.valueAt(s, firstSample + i);
+            int barHeight = static_cast<int>(value / maxValue * graphRect.height());
+            barHeight = qBound(0, barHeight, graphRect.height());
+            if (barHeight == 0) continue; //avoid bottom line
+            int x = firstX + i;
+            lines.append(QLine(x, bottom, x, bottom - barHeight + 1));
+        }
+        painter.setPen(QPen(seriesColors.at(s), 1));
+        painter.drawLines(lines);
+    }
 }
 
 qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
@@ -304,7 +343,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     painter.setRenderHint(QPainter::Antialiasing, false);
     int w = width();
     int h = height();
-    int marginLeft = 50;
+    int marginLeft = 55;
     int marginRight = 0;
     int marginTop = 5;
     int marginBottom = 0;
@@ -351,7 +390,7 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
                 label = QString::number(val) + "%";
                 break;
             case UnitMode::UnitModeMemory:
-                label = QString::number(val) + " MB";
+                label = QString::number(int(val/BYTES_PER_MB)) + " MB";
                 break;
             // default:
             //     break;
@@ -367,16 +406,18 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     // int x = graphX + (graphW * i / vDivisions);
     // painter.drawLine(x, graphY, x, graphY + graphH);
     // }
-    if (m_history.size() < 2) return;
+    if (m_history.size() < 2 /*&& m_sampleHistory->sampleCount() < 2*/) return;
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     //double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
     QRect graphRect(graphX, graphY, graphW, graphH);
     if (m_drawMode == DrawMode::DrawModeLines) painter.setRenderHint(QPainter::Antialiasing);
     else painter.setRenderHint(QPainter::Antialiasing, false);
     if (m_drawMode == DrawMode::DrawModeBars)
+        // if (true)
     {
         drawSeriesBars(painter, m_penRx, true, graphRect, false);
         drawSeriesBars(painter, m_penTx, false, graphRect, false);
+        // drawSeriesBars2(painter,graphRect,*m_sampleHistory,m_colors,m_maxVal);
     }
     else
     {

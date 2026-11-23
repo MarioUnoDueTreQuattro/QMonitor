@@ -19,6 +19,7 @@ public:
     qint64 valueAt(int seriesIndex, int sampleIndex) const;
     qint64 latestValue(int seriesIndex) const;
     qint64 maxValueInLast(int visibleSamples, qint64 minimumValue) const;
+    qint64 maxValue() const;
 
     // void addSample(const QVector<double> &values);
     void clear();
