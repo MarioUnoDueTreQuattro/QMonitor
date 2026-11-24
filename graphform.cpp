@@ -59,14 +59,14 @@ void GraphForm::readSettings()
     {
         QTimer::singleShot(1000, this, &GraphForm::hide);
     }
-    // bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
-    // setWindowFrameless(bTitle);
-    // int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
-    // setWindowOpacityPercent(iWindowOpacity);
-    // bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
-    // setWindowAlwaysOnTop(alwaysOnTop);
-    // bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
-    // setWindowShowInTaskbar(!bHideInTaskbar);
+    bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
+    setWindowFrameless(bTitle);
+    int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
+    setWindowOpacityPercent(iWindowOpacity);
+    bool alwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    setWindowAlwaysOnTop(alwaysOnTop);
+    bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
+    setWindowShowInTaskbar(!bHideInTaskbar);
     // QString savedDevice = settings->value("NetworkDevice", "wlp2s0").toString();
     // m_iface = savedDevice;
     // setNetworkInterface(m_iface);
@@ -191,6 +191,90 @@ void GraphForm::updateX11SkipTaskbar()
     int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
     setWindowOpacityPercent(100);
     setWindowOpacityPercent(iWindowOpacity);
+}
+
+void GraphForm::setWindowShowInTaskbar(bool showInTaskbar)
+{
+    const bool wasVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    // Clear only window type bits
+    flags &= ~Qt::WindowType_Mask;
+    if (showInTaskbar)
+    {
+        flags |= Qt::Window;
+    }
+    else
+    {
+        flags |= Qt::Tool;
+    }
+    setWindowFlags(flags);
+    if (wasVisible)
+    {
+        show();
+        raise();
+    }
+    updateX11SkipTaskbar();
+}
+
+void GraphForm::setWindowAlwaysOnTop(bool enabled)
+{
+    const bool bWindowBypassWM = settings->value("WindowBypassWM", false).toBool();
+    const bool wasVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    if (enabled)
+    {
+        flags |= Qt::WindowStaysOnTopHint;
+        if (bWindowBypassWM)
+        {
+            flags |= Qt::BypassWindowManagerHint;
+        }
+        else
+        {
+            flags &= ~Qt::BypassWindowManagerHint;
+        }
+    }
+    else
+    {
+        flags &= ~Qt::WindowStaysOnTopHint;
+        flags &= ~Qt::BypassWindowManagerHint;
+    }
+    setWindowFlags(flags);
+    // Necessario dopo setWindowFlags()
+    if (wasVisible)
+    {
+        show();
+        raise();
+        //activateWindow();
+    }
+}
+
+void GraphForm::setWindowFrameless(bool frameless)
+{
+    const bool bVisible = isVisible();
+    Qt::WindowFlags flags = windowFlags();
+    if (frameless)
+    {
+        flags |= Qt::FramelessWindowHint;
+    }
+    else
+    {
+        flags &= ~Qt::FramelessWindowHint;
+        // Facoltativo: ripristina una title bar standard
+        // flags |= Qt::WindowTitleHint |
+        // Qt::WindowSystemMenuHint |
+        // Qt::WindowMinMaxButtonsHint |
+        // Qt::WindowCloseButtonHint;
+        flags |= Qt::WindowTitleHint
+                       | Qt::WindowSystemMenuHint
+                       | Qt::WindowMinMaxButtonsHint
+                       | Qt::WindowCloseButtonHint;
+    }
+    setWindowFlags(flags);
+    if (bVisible)
+    {
+        show();
+        raise();
+    }
 }
 
 void GraphForm::setWindowOpacityPercent(int percent)

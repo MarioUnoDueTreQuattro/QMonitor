@@ -264,6 +264,9 @@ void MainWindow::toggleMainWindow()
 void MainWindow::toggleCPUWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
+    const bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
+    const bool bAlwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    const bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     if (m_cpuForm->isVisible())
     {
         m_cpuForm->hide();
@@ -271,6 +274,9 @@ void MainWindow::toggleCPUWindow()
     }
     else
     {
+        m_cpuForm->setWindowFrameless(bTitle);
+        m_cpuForm->setWindowAlwaysOnTop(bAlwaysOnTop);
+        m_cpuForm->setWindowShowInTaskbar(!bHideInTaskbar);
         m_cpuForm->show();
         m_cpuForm->raise();
         m_cpuForm->activateWindow();
@@ -286,6 +292,9 @@ void MainWindow::toggleNetWindow()
 void MainWindow::toggleMemWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
+    const bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
+    const bool bAlwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    const bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
     if (m_memForm->isVisible())
     {
         m_memForm->hide();
@@ -293,6 +302,9 @@ void MainWindow::toggleMemWindow()
     }
     else
     {
+        m_memForm->setWindowFrameless(bTitle);
+        m_memForm->setWindowAlwaysOnTop(bAlwaysOnTop);
+        m_memForm->setWindowShowInTaskbar(!bHideInTaskbar);
         m_memForm->show();
         m_memForm->raise();
         m_memForm->activateWindow();
@@ -593,6 +605,7 @@ void MainWindow::setWindowFrameless(bool frameless)
         raise();
     }
 }
+
 void MainWindow::setWindowShowInTaskbar(bool showInTaskbar)
 {
     const bool wasVisible = isVisible();
