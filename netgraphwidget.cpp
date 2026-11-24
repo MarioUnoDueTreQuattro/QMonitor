@@ -16,6 +16,9 @@ NetGraphWidget::NetGraphWidget(QWidget *parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested, this, &NetGraphWidget::showContextMenu);
     m_gridFont = QFont("SansSerif", 8);
+    QFontMetrics fm(m_gridFont);
+    m_labelHeight = fm.height();
+    m_labelHeight = m_labelHeight + 1; // vertical breathing room between rows
     m_updateIntervalNet = 2000;
 }
 
@@ -234,10 +237,10 @@ void NetGraphWidget::drawSeriesBars(QPainter &painter, const QPen &pen, bool use
 }
 
 void NetGraphWidget::drawSeriesBars2(QPainter &painter, const QRect &graphRect,
-                                     const SampleHistory &history,
-                                     const QVector<QColor> &seriesColors, double maxValue)
+    const SampleHistory &history,
+    const QVector<QColor> &seriesColors, double maxValue)
 {
-    if (m_maxVal <= 0 || history.sampleCount()== 0)
+    if (m_maxVal <= 0 || history.sampleCount() == 0)
         return;
     // qDebug() << "history.sampleCount():" << history.sampleCount();
     const int bottom = graphRect.bottom();
@@ -276,6 +279,11 @@ qint64 NetGraphWidget::getTrayVisibleMax(int visibleSamples) const
         maxVal = qMax(maxVal, m_history[i].tx);
     }
     return maxVal;
+}
+
+void NetGraphWidget::setMaxGridDivisions(int newMaxGridDivisions)
+{
+    m_maxGridDivisions = newMaxGridDivisions;
 }
 
 QPixmap NetGraphWidget::renderTrayIcon(int size)
@@ -366,7 +374,8 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     painter.drawRect(graphX, graphY, graphW - 1, graphH - 1);
     //painter.setPen(m_gridPen);
     painter.setFont(m_gridFont);
-    int hDivisions = 4;
+    int hDivisions = graphH / m_labelHeight;
+    hDivisions = qMin(hDivisions, m_maxGridDivisions);
     // Fase 1: linee della griglia orizzontale
     painter.setPen(m_gridPen);
     for (int i = 1; i < hDivisions; ++i)   // parte da 1: la linea i=0 non si disegna
@@ -390,10 +399,10 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
                 label = QString::number(val) + "%";
                 break;
             case UnitMode::UnitModeMemory:
-                label = QString::number(int(val/BYTES_PER_MB)) + " MB";
+                label = QString::number(int(val / BYTES_PER_MB)) + " MB";
                 break;
-            // default:
-            //     break;
+                // default:
+                // break;
         }
         // if (m_unitMode == static_cast<int>(UnitMode::UnitModeNet)) label = Utils::formatBytes(val) /*+ "/s"*/;
         // painter.setPen(m_labelPen);

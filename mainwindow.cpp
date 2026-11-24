@@ -1005,6 +1005,10 @@ void MainWindow::on_actionSettings_triggered()
 }
 void MainWindow::setNetGraphSettings()
 {
+    ui->netGraph->setMaxGridDivisions(settings->value("MaxGridDivisionsNetwork", 4).toInt());
+    m_netForm->setMaxGridDivisions(settings->value("MaxGridDivisionsNetwork", 4).toInt());
+    m_cpuForm->setMaxGridDivisions(settings->value("MaxGridDivisionsCPU", 4).toInt());
+    m_memForm->setMaxGridDivisions(settings->value("MaxGridDivisionsMemory", 4).toInt());
     m_trayIconsSize = settings->value("TrayIconsSize", 32).toInt();
     m_updateIntervalNet = settings->value("UpdateIntervalNet", 2000).toInt();
     m_updateIntervalCPU = settings->value("UpdateIntervalCPU", 2000).toInt();

@@ -26,6 +26,8 @@ public:
     void setWindowAlwaysOnTop(bool enabled);
     void setWindowShowInTaskbar(bool showInTaskbar);
     NetGraphWidget* graphWidget() const;
+    void setMaxGridDivisions(int newMaxGridDivisions);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
@@ -41,6 +43,7 @@ private:
     SampleHistory *m_sampleHistory;
     QVector<QColor> m_colors;
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
+    int m_maxGridDivisions;
     bool m_isDragging = false;
     bool m_isQuitting = false;
     bool m_geometryRestored = false;

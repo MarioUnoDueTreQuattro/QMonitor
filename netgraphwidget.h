@@ -35,6 +35,8 @@ public:
 
     void setMaxVal(qint64 newMaxVal);
 
+    void setMaxGridDivisions(int newMaxGridDivisions);
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -63,6 +65,7 @@ private:
     bool m_paused = false;
     // QString formatBytes(qint64 bytes) const;
     QFont m_gridFont;
+    int m_labelHeight;
     QPen m_penRx{QColor(0, 211, 10), 1.5};
     QPen m_penTx{QColor(255, 57, 0), 1.5};
     QPen m_gridPen{QColor(48, 48, 48), 1, Qt::DashLine};
@@ -70,6 +73,7 @@ private:
     QPen m_labelPen{QColor(160, 160, 160)};
     qint64 getTrayVisibleMax(int visibleSamples) const;
     int m_updateIntervalNet;
+    int m_maxGridDivisions;
     static constexpr double BYTES_PER_MB = 1024.0 * 1024.0;   // 1 048 576.0
 signals:
     void settingsRequested(); // custom signal

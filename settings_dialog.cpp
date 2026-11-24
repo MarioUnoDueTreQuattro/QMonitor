@@ -69,6 +69,9 @@ void SettingsDialog::saveSettings()
     settings->setValue("WindowBypassWM", ui->checkBoxWindowBypassWM->isChecked());
     settings->setValue("NetworkDevice", ui->comboNetworkDevice->currentData().toString());
     settings->setValue("TrayIconsSize", ui->spinBoxTrayIconsSize->value());
+    settings->setValue("MaxGridDivisionsNetwork", ui->spinBoxDivisionsNetwork->value());
+    settings->setValue("MaxGridDivisionsCPU", ui->spinBoxDivisionsCPU->value());
+    settings->setValue("MaxGridDivisionsMemory", ui->spinBoxDivisionsMemory->value());
     settings->sync();
 }
 
@@ -142,6 +145,9 @@ void SettingsDialog::loadSettings()
     if (index >= 0) ui->comboNetworkDevice->setCurrentIndex(index);
     int iTraySize = settings->value("TrayIconsSize", 32).toInt();
     ui->spinBoxTrayIconsSize->setValue(iTraySize);
+    ui->spinBoxDivisionsNetwork->setValue(settings->value("MaxGridDivisionsNetwork", 4).toInt());
+    ui->spinBoxDivisionsCPU->setValue(settings->value("MaxGridDivisionsCPU", 4).toInt());
+    ui->spinBoxDivisionsMemory->setValue(settings->value("MaxGridDivisionsMemory", 4).toInt());
     // for (int i = 0; i < ui->comboNetworkDevice->count(); ++i)
     // {
     // qDebug() << "Text:" << ui->comboNetworkDevice->itemText(i)

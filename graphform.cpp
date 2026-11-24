@@ -42,15 +42,15 @@ void GraphForm::closeEvent(QCloseEvent *event)
     // m_trayIcon->hide();
     // QMainWindow::closeEvent(event);
     // event->accept();
-    // settings->setValue("geometry" + this->windowTitle(), saveGeometry());
-    // //settings->setValue("windowState", saveState());
-    // settings->setValue("WinVisible" + this->windowTitle(), false);
-    // settings->sync();
+    settings->setValue("geometry" + this->windowTitle(), saveGeometry());
+    //settings->setValue("windowState", saveState());
+    settings->setValue("WinVisible" + this->windowTitle(), false);
+    settings->sync();
     hide();
     event->ignore();
 }
 
-NetGraphWidget* GraphForm::graphWidget() const
+NetGraphWidget *GraphForm::graphWidget() const
 {
     return ui->netGraph;
 }
@@ -61,11 +61,6 @@ void GraphForm::readSettings()
     // m_bShowAvgMax = settings->value("ShowAvgMaxNet", true).toBool();
     // ui->labelAvg->setVisible(m_bShowAvgMax);
     // ui->labelMax->setVisible(m_bShowAvgMax);
-    bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
-    if (!bIsVisible)
-    {
-        QTimer::singleShot(1000, this, &GraphForm::hide);
-    }
     bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
     setWindowFrameless(bTitle);
     int iWindowOpacity = settings->value("WindowOpacity", 100).toInt();
@@ -130,6 +125,13 @@ void GraphForm::showEvent(QShowEvent *event)
     {
         updateX11SkipTaskbar();
     });
+    m_maxGridDivisions = settings->value("MaxGridDivisions" + this->windowTitle(), 4).toInt();
+    ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
+    bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
+    if (!bIsVisible)
+    {
+        QTimer::singleShot(1000, this, &GraphForm::hide);
+    }
 }
 
 void GraphForm::mouseReleaseEvent(QMouseEvent *event)
@@ -140,6 +142,12 @@ void GraphForm::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     QWidget::mouseReleaseEvent(event);
+}
+
+void GraphForm::setMaxGridDivisions(int newMaxGridDivisions)
+{
+    m_maxGridDivisions = newMaxGridDivisions;
+    ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
 }
 
 void GraphForm::setMaxVal(qint64 newMaxVal)
