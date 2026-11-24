@@ -25,7 +25,7 @@ GraphForm::~GraphForm()
 
 void GraphForm::closeEvent(QCloseEvent *event)
 {
-    qDebug() << __PRETTY_FUNCTION__;
+    qDebug() << __PRETTY_FUNCTION__ << this->windowTitle();
     if (m_isQuitting)
     {
         if (true)//(isVisible())
@@ -44,6 +44,7 @@ void GraphForm::closeEvent(QCloseEvent *event)
     settings->setValue("geometry" + this->windowTitle(), saveGeometry());
     //settings->setValue("windowState", saveState());
     settings->setValue("WinVisible" + this->windowTitle(), false);
+    settings->sync();
     hide();
     event->ignore();
 }

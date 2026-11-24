@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
     ui->netGraph->setSampleHistory(m_networkHistory);
+    m_netForm->setSampleHistory(m_networkHistory);
     m_cpuForm->setSampleHistory(m_cpuHistory);
     m_memForm->setSampleHistory(m_memoryHistory);
     // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
@@ -287,6 +288,24 @@ void MainWindow::toggleCPUWindow()
 void MainWindow::toggleNetWindow()
 {
     qDebug() << __PRETTY_FUNCTION__ ;
+    const bool bTitle = settings->value("WindowHideTitlebar", false).toBool();
+    const bool bAlwaysOnTop = settings->value("WindowAlwaysOnTop", false).toBool();
+    const bool bHideInTaskbar = settings->value("WindowHideInTaskbar", false).toBool();
+    if (m_netForm->isVisible())
+    {
+        m_netForm->hide();
+        settings->setValue("WinVisibleNet", false);
+    }
+    else
+    {
+        m_netForm->setWindowFrameless(bTitle);
+        m_netForm->setWindowAlwaysOnTop(bAlwaysOnTop);
+        m_netForm->setWindowShowInTaskbar(!bHideInTaskbar);
+        m_netForm->show();
+        m_netForm->raise();
+        m_netForm->activateWindow();
+        settings->setValue("WinVisibleNet", true);
+    }
 }
 
 void MainWindow::toggleMemWindow()
@@ -315,6 +334,10 @@ void MainWindow::toggleMemWindow()
 void MainWindow::quitApplication()
 {
     m_isQuitting = true;
+    this->close();
+    m_netForm->close();
+    m_cpuForm->close();
+    m_memForm->close();
     qApp->quit();
 }
 
@@ -328,6 +351,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
             settings->setValue("windowState", saveState());
         }
         settings->setValue("MainWinVisible", isVisible());
+        settings->sync();
         event->accept();
         return;
     }
@@ -338,6 +362,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings->setValue("geometry", saveGeometry());
     settings->setValue("windowState", saveState());
     settings->setValue("MainWinVisible", false);
+    settings->sync();
     hide();
     event->ignore();
 }
