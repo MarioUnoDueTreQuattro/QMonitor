@@ -54,6 +54,8 @@ void SettingsDialog::saveSettings()
     // settingsMgr->setValue("ForceDolphin", ui->checkForceDolphin->isChecked());
     saveColors();
     settings->setValue("DrawModeLinesNet", ui->radioButtonDrawModeLines->isChecked());
+    settings->setValue("DrawModeLinesCPU", ui->radioButtonDrawModeLinesCPU->isChecked());
+    settings->setValue("DrawModeLinesMem", ui->radioButtonDrawModeLinesMemory->isChecked());
     settings->setValue("UpdateIntervalNet", ui->spinBoxInterval->value());
     settings->setValue("UpdateIntervalCPU", ui->spinBoxIntervaCPU->value());
     settings->setValue("UpdateIntervalRAM", ui->spinBoxIntervalMemory->value());
@@ -106,9 +108,16 @@ void SettingsDialog::loadSettings()
     bool bSingleInstance = settings->value("SingleInstance", true).toBool();
     ui->checkSingleInstance->setChecked(bSingleInstance);
     loadColors();
-    bool bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
+    bool bDrawModeLines;
+    bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
     if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
     else ui->radioButtonDrawModeBars->setChecked(true);
+    bDrawModeLines = settings->value("DrawModeLinesCPU", true).toBool();
+    if (bDrawModeLines) ui->radioButtonDrawModeLinesCPU->setChecked(true);
+    else ui->radioButtonDrawModeBarsCPU->setChecked(true);
+    bDrawModeLines = settings->value("DrawModeLinesMem", true).toBool();
+    if (bDrawModeLines) ui->radioButtonDrawModeLinesMemory->setChecked(true);
+    else ui->radioButtonDrawModeBarsMemory->setChecked(true);
     ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet", 2000).toInt());
     ui->spinBoxIntervaCPU->setValue(settings->value("UpdateIntervalCPU", 2000).toInt());
     ui->spinBoxIntervalMemory->setValue(settings->value("UpdateIntervalRAM", 2000).toInt());
