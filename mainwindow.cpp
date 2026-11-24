@@ -23,9 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setNetworkInterface(m_iface);
-    m_netForm=new GraphForm(this);
-    m_cpuForm=new GraphForm(this);
-    m_memForm=new GraphForm(this);
+    m_netForm = new GraphForm(this);
+    m_cpuForm = new GraphForm(this);
+    m_memForm = new GraphForm(this);
     m_netForm->setWindowFlags(Qt::Window);
     m_cpuForm->setWindowFlags(Qt::Window);
     m_memForm->setWindowFlags(Qt::Window);
@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_netForm->setUnit(NetGraphWidget::UnitMode::UnitModeNet);
     m_cpuForm->setUnit(NetGraphWidget::UnitMode::UnitModePercent);
     m_memForm->setUnit(NetGraphWidget::UnitMode::UnitModeMemory);
-
     m_networkHistory = new SampleHistory(2, this);   // rx, tx (bytes/s)
     m_cpuHistory = new SampleHistory(1, this);   // total load (%)
     m_memoryHistory = new SampleHistory(3, this);   // ram, swap, zram (% of their total)
@@ -331,6 +330,20 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->ignore();
 }
 
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    //qDebug() << __PRETTY_FUNCTION__ << event->pos();
+    // Chiamiamo la funzione di base per garantire che l'evento venga gestito normalmente
+    QMainWindow::moveEvent(event);
+    settings->setValue("geometry", saveGeometry());
+    settings->setValue("windowState", saveState());
+    // 2. Chiama la funzione di salvataggio
+    //saveSettings();
+    // (Opzionale) Puoi usare event->pos() per vedere la nuova posizione, ma
+    // QWidget::pos() è più diretto dopo la chiamata alla base.
+    //qDebug() << "Window moved to: " << pos();
+}
+
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
@@ -387,7 +400,6 @@ void MainWindow::showEvent(QShowEvent *event)
     restoreGeometry(settings->value("geometry").toByteArray());
     // Ripristina lo stato di barre degli strumenti e pannelli agganciati
     restoreState(settings->value("windowState").toByteArray());
-
 }
 
 void MainWindow::updateX11SkipTaskbar()
@@ -652,7 +664,6 @@ void MainWindow::sampleMemory()
     sMemory.append(QString("ZRam used: %1").arg(formatBytesToMB(m_memoryHistory->latestValue(1))));
     m_trayIconRAM->setToolTip(sMemory);
     m_memForm->update();
-
 }
 
 void MainWindow::readColors()
@@ -717,8 +728,8 @@ void MainWindow::updateStats()
             m_lastRx = rx;
             m_lastTx = tx;
             m_lastTime = currentTime;
-            QString s_rxSpeed = Utils::formatBytes(rxSpeed)+ "/s";
-            QString s_txSpeed =  Utils::formatBytes(txSpeed)+ "/s";
+            QString s_rxSpeed = Utils::formatBytes(rxSpeed) + "/s";
+            QString s_txSpeed = Utils::formatBytes(txSpeed) + "/s";
             // 1. Aggiornamento della velocità istantanea
             // Inseriamo prima il punto nello storico del widget grafico
             if (ui->netGraph)
@@ -750,15 +761,15 @@ void MainWindow::updateStats()
                     if (ui->labelAvg)
                     {
                         ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
-                            .arg( Utils::formatBytes(ui->netGraph->getAvgRx()))
-                            .arg( Utils::formatBytes(ui->netGraph->getAvgTx())));
+                            .arg(Utils::formatBytes(ui->netGraph->getAvgRx()))
+                            .arg(Utils::formatBytes(ui->netGraph->getAvgTx())));
                     }
                     // 3. Aggiornamento della velocità massima (picco storico)
                     if (ui->labelMax)
                     {
                         ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
-                            .arg( Utils::formatBytes(ui->netGraph->getMaxRx()))
-                            .arg( Utils::formatBytes(ui->netGraph->getMaxTx())));
+                            .arg(Utils::formatBytes(ui->netGraph->getMaxRx()))
+                            .arg(Utils::formatBytes(ui->netGraph->getMaxTx())));
                     }
                 }
             }
