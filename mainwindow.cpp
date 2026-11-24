@@ -42,6 +42,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_netForm->setSampleHistory(m_networkHistory);
     m_cpuForm->setSampleHistory(m_cpuHistory);
     m_memForm->setSampleHistory(m_memoryHistory);
+    connect(m_netForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
+    connect(m_cpuForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
+    connect(m_memForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
+
     // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
@@ -129,6 +133,11 @@ MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
+}
+
+void MainWindow::hideForm (QWidget * form)
+{
+    form->hide();
 }
 
 bool MainWindow::isAnyGraphEnabled() const
@@ -294,7 +303,7 @@ void MainWindow::toggleNetWindow()
     if (m_netForm->isVisible())
     {
         m_netForm->hide();
-        settings->setValue("WinVisibleNet", false);
+        settings->setValue("WinVisibleNetwork", false);
     }
     else
     {
@@ -304,7 +313,7 @@ void MainWindow::toggleNetWindow()
         m_netForm->show();
         m_netForm->raise();
         m_netForm->activateWindow();
-        settings->setValue("WinVisibleNet", true);
+        settings->setValue("WinVisibleNetwork", true);
     }
 }
 
@@ -317,7 +326,7 @@ void MainWindow::toggleMemWindow()
     if (m_memForm->isVisible())
     {
         m_memForm->hide();
-        settings->setValue("WinVisibleMem", false);
+        settings->setValue("WinVisibleMemory", false);
     }
     else
     {
@@ -327,7 +336,7 @@ void MainWindow::toggleMemWindow()
         m_memForm->show();
         m_memForm->raise();
         m_memForm->activateWindow();
-        settings->setValue("WinVisibleMem", true);
+        settings->setValue("WinVisibleMemory", true);
     }
 }
 
@@ -345,7 +354,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (m_isQuitting)
     {
-        if (true)//(isVisible())
+        if (isVisible())
         {
             settings->setValue("geometry", saveGeometry());
             settings->setValue("windowState", saveState());

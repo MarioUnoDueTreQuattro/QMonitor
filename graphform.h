@@ -25,6 +25,7 @@ public:
     void setWindowFrameless(bool frameless);
     void setWindowAlwaysOnTop(bool enabled);
     void setWindowShowInTaskbar(bool showInTaskbar);
+    NetGraphWidget* graphWidget() const;
 protected:
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;

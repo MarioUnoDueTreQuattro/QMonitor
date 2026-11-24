@@ -74,7 +74,7 @@ private:
 signals:
     void settingsRequested(); // custom signal
     void aboutRequested(); // custom signal
-    void hideRequested(); // custom signal
+    void hideRequested(QWidget *form); // custom signal
     void pauseStateChanged(); // custom signal
 
 };

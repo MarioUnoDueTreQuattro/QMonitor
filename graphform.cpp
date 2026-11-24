@@ -28,12 +28,13 @@ void GraphForm::closeEvent(QCloseEvent *event)
     qDebug() << __PRETTY_FUNCTION__ << this->windowTitle();
     if (m_isQuitting)
     {
-        if (true)//(isVisible())
+        if (isVisible())
         {
             settings->setValue("geometry" + this->windowTitle(), saveGeometry());
             //settings->setValue("windowState", saveState());
         }
         settings->setValue("WinVisible" + this->windowTitle(), isVisible());
+        settings->sync();
         event->accept();
         return;
     }
@@ -41,12 +42,17 @@ void GraphForm::closeEvent(QCloseEvent *event)
     // m_trayIcon->hide();
     // QMainWindow::closeEvent(event);
     // event->accept();
-    settings->setValue("geometry" + this->windowTitle(), saveGeometry());
-    //settings->setValue("windowState", saveState());
-    settings->setValue("WinVisible" + this->windowTitle(), false);
-    settings->sync();
+    // settings->setValue("geometry" + this->windowTitle(), saveGeometry());
+    // //settings->setValue("windowState", saveState());
+    // settings->setValue("WinVisible" + this->windowTitle(), false);
+    // settings->sync();
     hide();
     event->ignore();
+}
+
+NetGraphWidget* GraphForm::graphWidget() const
+{
+    return ui->netGraph;
 }
 
 void GraphForm::readSettings()
@@ -266,9 +272,9 @@ void GraphForm::setWindowFrameless(bool frameless)
         // Qt::WindowMinMaxButtonsHint |
         // Qt::WindowCloseButtonHint;
         flags |= Qt::WindowTitleHint
-                       | Qt::WindowSystemMenuHint
-                       | Qt::WindowMinMaxButtonsHint
-                       | Qt::WindowCloseButtonHint;
+            | Qt::WindowSystemMenuHint
+            | Qt::WindowMinMaxButtonsHint
+            | Qt::WindowCloseButtonHint;
     }
     setWindowFlags(flags);
     if (bVisible)

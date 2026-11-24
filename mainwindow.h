@@ -46,6 +46,7 @@ private slots:
     void toggleCPUWindow();
     void toggleMemWindow();
     void quitApplication();
+    void hideForm(QWidget *form);
 private:
     Ui::MainWindow *ui;
     GraphForm *m_netForm;

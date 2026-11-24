@@ -58,7 +58,7 @@ void NetGraphWidget::showContextMenu(const QPoint &pos)
     }
     else if (selected == actHide)
     {
-        emit hideRequested();
+        emit hideRequested(this->parentWidget());
     }
 }
 
