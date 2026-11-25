@@ -75,6 +75,8 @@ private:
     int m_updateIntervalNet;
     int m_maxGridDivisions;
     static constexpr double BYTES_PER_MB = 1024.0 * 1024.0;   // 1 048 576.0
+    static inline constexpr std::array<int, 10> kHumanDivisors100 = {1, 2, 4, 5, 8, 10, 20, 25, 40, 50};
+    bool m_useHumanDivisions=true;
 signals:
     void settingsRequested(); // custom signal
     void aboutRequested(); // custom signal

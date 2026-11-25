@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <QtMath>
+#include <QList>
 
 static constexpr double BYTES_PER_KB = 1024.0;
 static constexpr double BYTES_PER_MB = BYTES_PER_KB * 1024.0;
@@ -17,4 +18,19 @@ QString Utils::formatBytes(qint64 bytes)
         return QString::number(value, 'f', 1) + (isKb ? " KB" : " MB");
     }
     return QString::number(qRound(value)) + (isKb ? " KB" : " MB");
+}
+
+
+QList<int> Utils::humanDivisors(int range, int minDiv, int maxDiv, bool allowHalfSteps)
+{
+    QList<int> result;
+    const int scaled = allowHalfSteps ? range * 2 : range;
+    for (int n = minDiv; n <= maxDiv; ++n)
+    {
+        if (scaled % n == 0)
+        {
+            result.append(n);
+        }
+    }
+    return result;
 }

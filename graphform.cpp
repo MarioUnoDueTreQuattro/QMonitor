@@ -44,7 +44,7 @@ void GraphForm::closeEvent(QCloseEvent *event)
     // event->accept();
     settings->setValue("geometry" + this->windowTitle(), saveGeometry());
     //settings->setValue("windowState", saveState());
-    settings->setValue("WinVisible" + this->windowTitle(), false);
+    settings->setValue("WinVisible" + this->windowTitle(), isVisible());
     settings->sync();
     hide();
     event->ignore();
@@ -127,11 +127,11 @@ void GraphForm::showEvent(QShowEvent *event)
     });
     m_maxGridDivisions = settings->value("MaxGridDivisions" + this->windowTitle(), 4).toInt();
     ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
-    bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
-    if (!bIsVisible)
-    {
-        QTimer::singleShot(1000, this, &GraphForm::hide);
-    }
+    // bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
+    // if (!bIsVisible)
+    // {
+    //     QTimer::singleShot(1000, this, &GraphForm::hide);
+    // }
 }
 
 void GraphForm::mouseReleaseEvent(QMouseEvent *event)

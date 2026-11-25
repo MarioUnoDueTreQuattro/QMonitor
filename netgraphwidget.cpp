@@ -376,6 +376,17 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     painter.setFont(m_gridFont);
     int hDivisions = graphH / m_labelHeight;
     hDivisions = qMin(hDivisions, m_maxGridDivisions);
+    if (m_useHumanDivisions && m_unitMode == UnitMode::UnitModePercent)
+    {
+        int best = 1;
+        for (int d : kHumanDivisors100)
+        {
+            if (d > hDivisions)
+                break;
+            best = d;
+        }
+        hDivisions = best;
+    }
     // Fase 1: linee della griglia orizzontale
     painter.setPen(m_gridPen);
     for (int i = 1; i < hDivisions; ++i)   // parte da 1: la linea i=0 non si disegna
@@ -396,8 +407,12 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
                 label = Utils::formatBytes(val) /*+ "/s"*/;
                 break;
             case UnitMode::UnitModePercent:
-                label = QString::number(val) + "%";
-                break;
+                {
+                    const qint64 val10 = (m_maxVal * 10) - (m_maxVal * 10 * i / hDivisions);
+                    label = QString::number(val10 / 10.0) + "%"; // es. 875 / 10.0 -> "87.5%"
+                    // label = QString::number(val) + "%";
+                    break;
+                }
             case UnitMode::UnitModeMemory:
                 label = QString::number(int(val / BYTES_PER_MB)) + " MB";
                 break;
