@@ -30,14 +30,12 @@ public:
     bool paused() const;
     void setUpdateIntervalNet(int newUpdateIntervalNet);
     void setSampleHistory(SampleHistory *newSampleHistory);
-
     void setColors(const QVector<QColor> &newColors);
     void setBorderColor(const QColor &newColor);
     void setGridLinesColor(const QColor &newColor);
     void setGridLinesStyle(int);
-
+    void setLabelColor(const QColor &newColor);
     void setMaxVal(qint64 newMaxVal);
-
     void setMaxGridDivisions(int newMaxGridDivisions);
 
 protected:
@@ -50,8 +48,8 @@ private:
     UnitMode m_unitMode = UnitMode::UnitModeNet;
     void drawSeriesBars(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, bool isTray);
     void drawSeriesBars2(QPainter &painter, const QRect &graphRect,
-                         const SampleHistory &history,
-                         const QVector<QColor> &seriesColors, double maxValue);
+        const SampleHistory &history,
+        const QVector<QColor> &seriesColors, double maxValue);
     static void paintTrayBars(QPainter &painter, const QRect &graphRect, const SampleHistory &history, const QVector<QColor> &seriesColors, double maxValue);
     void drawSeriesLines(QPainter &painter, const QPen &pen, bool useRx, const QRect &graphRect, double stepX);
     struct DataPoint
@@ -79,7 +77,7 @@ private:
     int m_maxGridDivisions;
     static constexpr double BYTES_PER_MB = 1024.0 * 1024.0;   // 1 048 576.0
     static inline constexpr std::array<int, 10> kHumanDivisors100 = {1, 2, 4, 5, 8, 10, 20, 25, 40, 50};
-    bool m_useHumanDivisions=true;
+    bool m_useHumanDivisions = true;
 signals:
     void settingsRequested(); // custom signal
     void aboutRequested(); // custom signal

@@ -217,6 +217,11 @@ void NetGraphWidget::setGridLinesStyle(int rawValue)
     m_gridPen.setStyle(static_cast<Qt::PenStyle>(rawValue));
 }
 
+void NetGraphWidget::setLabelColor(const QColor &newColor)
+{
+m_labelPen.setColor(newColor);
+}
+
 void NetGraphWidget::setSampleHistory(SampleHistory *history)
 {
     m_sampleHistory = history;

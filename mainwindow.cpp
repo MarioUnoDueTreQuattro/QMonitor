@@ -715,16 +715,6 @@ void MainWindow::sampleMemory()
 
 void MainWindow::readColors()
 {
-    /*
-        if (button->objectName() == "pushButtonColorDownload") defaultColor = QColor(0, 192, 0, 255);
-        if (button->objectName() == "pushButtonColorUpload") defaultColor = QColor(255, 85, 0, 255);
-        if (button->objectName() == "pushButtonCPU") defaultColor = QColor(170, 0, 0, 255);
-        if (button->objectName() == "pushButtonColorRAM") defaultColor = QColor(0, 170, 255, 255);
-        if (button->objectName() == "pushButtonColorSwap") defaultColor = QColor(255, 80, 255, 255);
-        if (button->objectName() == "pushButtonColorZram") defaultColor = QColor(170, 170, 0, 255);
-        if (button->objectName() == "pushButtonColorBorder") defaultColor = QColor(48, 48, 48);
-        if (button->objectName() == "pushButtonColorGridLines") defaultColor = QColor(48, 48, 48);
-        */
     colors_net.clear();
     colors_cpu.clear();
     colors_ram.clear();
@@ -784,6 +774,14 @@ void MainWindow::readColors()
     ui->netGraph->setGridLinesColor(defaultColor);
     m_cpuForm->setGridLinesColor(defaultColor);
     m_memForm->setGridLinesColor(defaultColor);
+    defaultColor = QColor(160, 160, 160, 255);
+    defaultColor = QColor(settings->value("pushButtonColorLabel", defaultColor.name()).toString());
+    iAlplha = settings->value("LabelOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    ui->netGraph->setLabelColor(defaultColor);
+    m_cpuForm->setLabelColor(defaultColor);
+    m_memForm->setLabelColor(defaultColor);
     // grid style
     const int rawValue = settings->value("GridLinesStyle", static_cast<int>(Qt::DotLine)).toInt();
     const auto style = static_cast<Qt::PenStyle>(rawValue);

@@ -23,6 +23,7 @@ public:
     void setBorderColor(const QColor &newColor);
     void setGridLinesColor(const QColor &newColor);
     void setGridLinesStyle(int);
+    void setLabelColor(const QColor &newColor);
     void setMaxVal(qint64 newMaxVal);
     void setWindowOpacityPercent(int percent);
     void setWindowFrameless(bool frameless);

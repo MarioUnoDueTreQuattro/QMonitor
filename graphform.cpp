@@ -178,6 +178,11 @@ void GraphForm::setGridLinesStyle(int rawValue)
     ui->netGraph->setGridLinesStyle(rawValue);
 }
 
+void GraphForm::setLabelColor(const QColor &newColor)
+{
+    ui->netGraph->setLabelColor(newColor);
+}
+
 void GraphForm::setSampleHistory(SampleHistory *newSampleHistory)
 {
     m_sampleHistory = newSampleHistory;

@@ -257,6 +257,7 @@ void SettingsDialog::loadColors()
         if (button->objectName() == "pushButtonColorZram") defaultColor = QColor(170, 170, 0, 255);
         if (button->objectName() == "pushButtonColorBorder") defaultColor = QColor(48, 48, 48);
         if (button->objectName() == "pushButtonColorGridLines") defaultColor = QColor(48, 48, 48);
+        if (button->objectName() == "pushButtonColorLabel") defaultColor = QColor(160, 160, 160);
         QString storedName = settings->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }
@@ -268,6 +269,8 @@ void SettingsDialog::loadColors()
     ui->spinBoxZramOpacity->setValue(settings->value("ZRamOpacity", 100).toInt());
     ui->spinBoxBorderOpacity->setValue(settings->value("BorderOpacity", 100).toInt());
     ui->spinBoxGridLinesOpacity->setValue(settings->value("GridLinesOpacity", 100).toInt());
+    ui->spinBoxLabelOpacity->setValue(settings->value("LabelOpacity", 100).toInt());
+
 }
 
 void SettingsDialog::saveColors()
@@ -286,6 +289,8 @@ void SettingsDialog::saveColors()
     settings->setValue("ZRamOpacity", ui->spinBoxZramOpacity->value());
     settings->setValue("BorderOpacity", ui->spinBoxBorderOpacity->value());
     settings->setValue("GridLinesOpacity", ui->spinBoxGridLinesOpacity->value());
+    settings->setValue("LabelOpacity", ui->spinBoxLabelOpacity->value());
+
 }
 
 void SettingsDialog::on_checkBoxMonitorNet_checkStateChanged(const Qt::CheckState &arg1)
