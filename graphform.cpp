@@ -128,7 +128,6 @@ void GraphForm::showEvent(QShowEvent *event)
     m_maxGridDivisions = settings->value("MaxGridDivisions" + this->windowTitle(), 4).toInt();
     ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
     m_hasBeenShown = true;
-
     // bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
     // if (!bIsVisible)
     // {
@@ -162,6 +161,21 @@ void GraphForm::setColors(const QVector<QColor> &newColors)
 {
     m_colors = newColors;
     ui->netGraph->setColors(m_colors);
+}
+
+void GraphForm::setBorderColor(const QColor &newColor)
+{
+    ui->netGraph->setBorderColor(newColor);
+}
+
+void GraphForm::setGridLinesColor(const QColor &newColor)
+{
+    ui->netGraph->setGridLinesColor(newColor);
+}
+
+void GraphForm::setGridLinesStyle(int rawValue)
+{
+    ui->netGraph->setGridLinesStyle(rawValue);
 }
 
 void GraphForm::setSampleHistory(SampleHistory *newSampleHistory)

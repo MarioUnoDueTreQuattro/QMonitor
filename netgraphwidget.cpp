@@ -106,9 +106,9 @@ void NetGraphWidget::resetGraph()
     update();
 }
 
-void NetGraphWidget::setPaused(bool paused)
+void NetGraphWidget::setPaused(bool pausedState)
 {
-    m_paused = paused;
+    m_paused = pausedState;
     emit pauseStateChanged();
 }
 
@@ -200,6 +200,21 @@ void NetGraphWidget::setMaxVal(qint64 newMaxVal)
 void NetGraphWidget::setColors(const QVector<QColor> &newColors)
 {
     m_colors = newColors;
+}
+
+void NetGraphWidget::setBorderColor(const QColor &newColor)
+{
+    m_borderPen.setColor(newColor);
+}
+
+void NetGraphWidget::setGridLinesColor(const QColor &newColor)
+{
+    m_gridPen.setColor(newColor);
+}
+
+void NetGraphWidget::setGridLinesStyle(int rawValue)
+{
+    m_gridPen.setStyle(static_cast<Qt::PenStyle>(rawValue));
 }
 
 void NetGraphWidget::setSampleHistory(SampleHistory *history)
@@ -387,13 +402,6 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
         }
         hDivisions = best;
     }
-    // Fase 1: linee della griglia orizzontale
-    painter.setPen(m_gridPen);
-    for (int i = 1; i < hDivisions; ++i)   // parte da 1: la linea i=0 non si disegna
-    {
-        const int y = graphY + (graphH * i / hDivisions);
-        painter.drawLine(graphX, y, graphX + graphW, y);
-    }
     QString label;
     painter.setPen(m_labelPen);
     for (int i = 0; i < hDivisions; ++i)
@@ -430,24 +438,35 @@ void NetGraphWidget::paintEvent(QPaintEvent *)
     // int x = graphX + (graphW * i / vDivisions);
     // painter.drawLine(x, graphY, x, graphY + graphH);
     // }
-    if (m_history.size() < 2 /*&& m_sampleHistory->sampleCount() < 2*/) return;
+    bool bDrawGraph = true;
+    if (m_history.size() < 2 && m_sampleHistory->sampleCount() < 2) bDrawGraph = false;
     // Ora stepX è esattamente (o vicinissimo a) 1.0 pixel per ogni campione!
     //double stepX = static_cast<double>(graphW) / (m_history.size() - 1);
-    QRect graphRect(graphX, graphY, graphW, graphH);
-    if (m_drawMode == DrawMode::DrawModeLines) painter.setRenderHint(QPainter::Antialiasing);
-    else painter.setRenderHint(QPainter::Antialiasing, false);
-    if (m_drawMode == DrawMode::DrawModeBars)
-        // if (true)
+    if (bDrawGraph)
     {
-        drawSeriesBars(painter, m_penRx, true, graphRect, false);
-        drawSeriesBars(painter, m_penTx, false, graphRect, false);
-        // drawSeriesBars2(painter,graphRect,*m_sampleHistory,m_colors,m_maxVal);
+        QRect graphRect(graphX, graphY, graphW, graphH);
+        if (m_drawMode == DrawMode::DrawModeLines) painter.setRenderHint(QPainter::Antialiasing);
+        else painter.setRenderHint(QPainter::Antialiasing, false);
+        // if (m_drawMode == DrawMode::DrawModeBars)
+        if (true)
+        {
+            // drawSeriesBars(painter, m_penRx, true, graphRect, false);
+            // drawSeriesBars(painter, m_penTx, false, graphRect, false);
+            drawSeriesBars2(painter, graphRect, *m_sampleHistory, m_colors, m_maxVal);
+        }
+        else
+        {
+            double stepX = static_cast<double>(graphRect.width() - 1) / (m_history.size() - 1);
+            drawSeriesLines(painter, m_penRx, true, graphRect, stepX);
+            drawSeriesLines(painter, m_penTx, false, graphRect, stepX);
+        }
     }
-    else
+    // Fase 1: linee della griglia orizzontale
+    painter.setPen(m_gridPen);
+    for (int i = 1; i < hDivisions; ++i)   // parte da 1: la linea i=0 non si disegna
     {
-        double stepX = static_cast<double>(graphRect.width() - 1) / (m_history.size() - 1);
-        drawSeriesLines(painter, m_penRx, true, graphRect, stepX);
-        drawSeriesLines(painter, m_penTx, false, graphRect, stepX);
+        const int y = graphY + (graphH * i / hDivisions);
+        painter.drawLine(graphX, y, graphX + graphW, y);
     }
 }
 

@@ -715,6 +715,16 @@ void MainWindow::sampleMemory()
 
 void MainWindow::readColors()
 {
+    /*
+        if (button->objectName() == "pushButtonColorDownload") defaultColor = QColor(0, 192, 0, 255);
+        if (button->objectName() == "pushButtonColorUpload") defaultColor = QColor(255, 85, 0, 255);
+        if (button->objectName() == "pushButtonCPU") defaultColor = QColor(170, 0, 0, 255);
+        if (button->objectName() == "pushButtonColorRAM") defaultColor = QColor(0, 170, 255, 255);
+        if (button->objectName() == "pushButtonColorSwap") defaultColor = QColor(255, 80, 255, 255);
+        if (button->objectName() == "pushButtonColorZram") defaultColor = QColor(170, 170, 0, 255);
+        if (button->objectName() == "pushButtonColorBorder") defaultColor = QColor(48, 48, 48);
+        if (button->objectName() == "pushButtonColorGridLines") defaultColor = QColor(48, 48, 48);
+        */
     colors_net.clear();
     colors_cpu.clear();
     colors_ram.clear();
@@ -724,26 +734,31 @@ void MainWindow::readColors()
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_cpu.append(defaultColor);
+    defaultColor = QColor(0, 170, 255, 255);
     defaultColor = QColor(settings->value("pushButtonColorRAM", defaultColor.name()).toString());
     iAlplha = settings->value("RAMOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram.append(defaultColor);
+    defaultColor = QColor(170, 170, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorZram", defaultColor.name()).toString());
     iAlplha = settings->value("ZRamOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram.append(defaultColor);
+    defaultColor = QColor(255, 80, 255, 255);
     defaultColor = QColor(settings->value("pushButtonColorSwap", defaultColor.name()).toString());
     iAlplha = settings->value("SwapOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_ram.append(defaultColor);
+    defaultColor = QColor(0, 192, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorDownload", defaultColor.name()).toString());
     iAlplha = settings->value("DownloadOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
     defaultColor.setAlpha(iAlplha);
     colors_net.append(defaultColor);
+    defaultColor = QColor(255, 85, 0, 255);
     defaultColor = QColor(settings->value("pushButtonColorUpload", defaultColor.name()).toString());
     iAlplha = settings->value("UploadOpacity", 100).toInt();
     iAlplha = qRound(iAlplha * 255.0 / 100.0);
@@ -752,6 +767,30 @@ void MainWindow::readColors()
     ui->netGraph->setColors(colors_net);
     m_cpuForm->setColors(colors_cpu);
     m_memForm->setColors(colors_ram);
+    // set border and grid colors
+    defaultColor = QColor(48, 48, 48, 255);
+    defaultColor = QColor(settings->value("pushButtonColorBorder", defaultColor.name()).toString());
+    iAlplha = settings->value("BorderOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    ui->netGraph->setBorderColor(defaultColor);
+    m_cpuForm->setBorderColor(defaultColor);
+    m_memForm->setBorderColor(defaultColor);
+    defaultColor = QColor(48, 48, 48, 255);
+    defaultColor = QColor(settings->value("pushButtonColorGridLines", defaultColor.name()).toString());
+    iAlplha = settings->value("GridLinesOpacity", 100).toInt();
+    iAlplha = qRound(iAlplha * 255.0 / 100.0);
+    defaultColor.setAlpha(iAlplha);
+    ui->netGraph->setGridLinesColor(defaultColor);
+    m_cpuForm->setGridLinesColor(defaultColor);
+    m_memForm->setGridLinesColor(defaultColor);
+    // grid style
+    const int rawValue = settings->value("GridLinesStyle", static_cast<int>(Qt::DotLine)).toInt();
+    const auto style = static_cast<Qt::PenStyle>(rawValue);
+    ui->netGraph->setGridLinesStyle(style);
+    m_cpuForm->setGridLinesStyle(style);
+    m_memForm->setGridLinesStyle(style);
+
 }
 
 void MainWindow::updateStats()

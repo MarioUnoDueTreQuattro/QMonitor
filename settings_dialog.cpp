@@ -1,22 +1,22 @@
 #include "settings_dialog.h"
 #include "ui_settings_dialog.h"
 #include <QDebug>
+#include <QGuiApplication>
+#include <QNetworkAddressEntry>
+#include <QNetworkInterface>
 #include <QScreen>
 #include <QTimer>
-#include <QGuiApplication>
-#include <QNetworkInterface>
-#include <QNetworkAddressEntry>
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
-    QDialog(parent),
+SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent),
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() | Qt::Dialog);
     adjustSize();
-    //setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
+    // setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle("Settings");
     settings = new QSettings();
+    setupLineStyleComboBox(ui->comboGridLinesStyle);
     setupDialog();
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(saveCurrentTabIndex(int)));
 }
@@ -72,6 +72,8 @@ void SettingsDialog::saveSettings()
     settings->setValue("MaxGridDivisionsNetwork", ui->spinBoxDivisionsNetwork->value());
     settings->setValue("MaxGridDivisionsCPU", ui->spinBoxDivisionsCPU->value());
     settings->setValue("MaxGridDivisionsMemory", ui->spinBoxDivisionsMemory->value());
+    const auto style = ui->comboGridLinesStyle->currentData().value<Qt::PenStyle>();
+       settings->setValue("GridLinesStyle", static_cast<int>(style));
     settings->sync();
 }
 
@@ -89,11 +91,11 @@ void SettingsDialog::loadSettings()
     }
     // int pos_x = (screenGeometry.width() - this->width()) / 2;
     // int pos_y = (screenGeometry.height() - this->height()) / 2;
-    //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-    //QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
+    // QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+    // QPoint savedPos = settings->value("SettingsPosition", QPoint(pos_x, pos_y)).toPoint();
     QPoint savedPos = settings->value("SettingsPosition", defaultPos).toPoint();
     move(savedPos);
-    //QScreen *screen = QGuiApplication::screenAt(savedPos);
+    // QScreen *screen = QGuiApplication::screenAt(savedPos);
     // if (screen)
     // {
     // move(savedPos);
@@ -101,7 +103,7 @@ void SettingsDialog::loadSettings()
     // }
     // else
     // {
-    //     // Se la posizione non è valida, centra la finestra
+    //      // Se la posizione non è valida, centra la finestra
     // move(QPoint(pos_x, pos_y));
     // }
     int iTab = settings->value("SettingsTab", 0).toInt();
@@ -113,14 +115,20 @@ void SettingsDialog::loadSettings()
     loadColors();
     bool bDrawModeLines;
     bDrawModeLines = settings->value("DrawModeLinesNet", true).toBool();
-    if (bDrawModeLines) ui->radioButtonDrawModeLines->setChecked(true);
-    else ui->radioButtonDrawModeBars->setChecked(true);
+    if (bDrawModeLines)
+        ui->radioButtonDrawModeLines->setChecked(true);
+    else
+        ui->radioButtonDrawModeBars->setChecked(true);
     bDrawModeLines = settings->value("DrawModeLinesCPU", true).toBool();
-    if (bDrawModeLines) ui->radioButtonDrawModeLinesCPU->setChecked(true);
-    else ui->radioButtonDrawModeBarsCPU->setChecked(true);
+    if (bDrawModeLines)
+        ui->radioButtonDrawModeLinesCPU->setChecked(true);
+    else
+        ui->radioButtonDrawModeBarsCPU->setChecked(true);
     bDrawModeLines = settings->value("DrawModeLinesMem", true).toBool();
-    if (bDrawModeLines) ui->radioButtonDrawModeLinesMemory->setChecked(true);
-    else ui->radioButtonDrawModeBarsMemory->setChecked(true);
+    if (bDrawModeLines)
+        ui->radioButtonDrawModeLinesMemory->setChecked(true);
+    else
+        ui->radioButtonDrawModeBarsMemory->setChecked(true);
     ui->spinBoxInterval->setValue(settings->value("UpdateIntervalNet", 2000).toInt());
     ui->spinBoxIntervaCPU->setValue(settings->value("UpdateIntervalCPU", 2000).toInt());
     ui->spinBoxIntervalMemory->setValue(settings->value("UpdateIntervalRAM", 2000).toInt());
@@ -141,8 +149,8 @@ void SettingsDialog::loadSettings()
     bool bWindowBypassWM = settings->value("WindowBypassWM", false).toBool();
     ui->checkBoxWindowBypassWM->setChecked(bWindowBypassWM);
     QString savedDevice = settings->value("NetworkDevice").toString();
-    int index = ui->comboNetworkDevice->findData(savedDevice);
-    if (index >= 0) ui->comboNetworkDevice->setCurrentIndex(index);
+    int indexNet = ui->comboNetworkDevice->findData(savedDevice);
+    if (indexNet >= 0) ui->comboNetworkDevice->setCurrentIndex(indexNet);
     int iTraySize = settings->value("TrayIconsSize", 32).toInt();
     ui->spinBoxTrayIconsSize->setValue(iTraySize);
     ui->spinBoxDivisionsNetwork->setValue(settings->value("MaxGridDivisionsNetwork", 4).toInt());
@@ -156,11 +164,24 @@ void SettingsDialog::loadSettings()
     // qDebug() << "Saved device:" << savedDevice;
     // qDebug() << "Found index:"
     // << ui->comboNetworkDevice->findData(savedDevice);
+    const int rawValue = settings->value("GridLinesStyle", static_cast<int>(Qt::DotLine)).toInt();
+    const auto style = static_cast<Qt::PenStyle>(rawValue);
+    int index = ui->comboGridLinesStyle->findData(QVariant::fromValue(style));
+    if (index == -1)
+    {
+        // Fallback if the stored value is invalid or missing from the combo box
+        index = ui->comboGridLinesStyle->findData(QVariant::fromValue(Qt::DotLine));
+        ui->comboGridLinesStyle->setCurrentIndex(index);
+    }
+    if (index != -1)
+    {
+        ui->comboGridLinesStyle->setCurrentIndex(index);
+    }
 }
 
 void SettingsDialog::saveWindowPosition()
 {
-    //settings->setValue("SettingsPosition", pos());
+    // settings->setValue("SettingsPosition", pos());
     settings->setValue("SettingsPosition", geometry().topLeft());
     // qDebug() << __PRETTY_FUNCTION__ << " posX:" << pos().x() << " - posY:" << pos().y();
 }
@@ -168,7 +189,7 @@ void SettingsDialog::saveWindowPosition()
 void SettingsDialog::moveEvent(QMoveEvent *event)
 {
     QWidget::moveEvent(event);
-    //QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+    // QSettings settings(QApplication::organizationName(), QApplication::applicationName());
     if (isVisible() && !isMinimized() && !isMaximized())
     {
         QTimer::singleShot(200, this, &SettingsDialog::saveWindowPosition);
@@ -202,10 +223,10 @@ void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
     {
         case QDialogButtonBox::ApplyRole:
             qDebug() << "Apply clicked -> apply changes without closing";
-            //applySettings();
-            //on_SettingsDialog_accepted();
+            // applySettings();
+            // on_SettingsDialog_accepted();
             saveSettings();
-            emit applyClicked();   // <-- EMIT CUSTOM SIGNAL
+            emit applyClicked(); // <-- EMIT CUSTOM SIGNAL
             break;
         // case QDialogButtonBox::AcceptRole:
         // qDebug() << "OK clicked -> apply + close";
@@ -234,6 +255,8 @@ void SettingsDialog::loadColors()
         if (button->objectName() == "pushButtonColorRAM") defaultColor = QColor(0, 170, 255, 255);
         if (button->objectName() == "pushButtonColorSwap") defaultColor = QColor(255, 80, 255, 255);
         if (button->objectName() == "pushButtonColorZram") defaultColor = QColor(170, 170, 0, 255);
+        if (button->objectName() == "pushButtonColorBorder") defaultColor = QColor(48, 48, 48);
+        if (button->objectName() == "pushButtonColorGridLines") defaultColor = QColor(48, 48, 48);
         QString storedName = settings->value(button->objectName(), defaultColor.name()).toString();
         button->setColor(QColor(storedName));
     }
@@ -243,6 +266,8 @@ void SettingsDialog::loadColors()
     ui->spinBoxRAMOpacity->setValue(settings->value("RAMOpacity", 100).toInt());
     ui->spinBoxSwapOpacity->setValue(settings->value("SwapOpacity", 100).toInt());
     ui->spinBoxZramOpacity->setValue(settings->value("ZRamOpacity", 100).toInt());
+    ui->spinBoxBorderOpacity->setValue(settings->value("BorderOpacity", 100).toInt());
+    ui->spinBoxGridLinesOpacity->setValue(settings->value("GridLinesOpacity", 100).toInt());
 }
 
 void SettingsDialog::saveColors()
@@ -259,6 +284,8 @@ void SettingsDialog::saveColors()
     settings->setValue("RAMOpacity", ui->spinBoxRAMOpacity->value());
     settings->setValue("SwapOpacity", ui->spinBoxSwapOpacity->value());
     settings->setValue("ZRamOpacity", ui->spinBoxZramOpacity->value());
+    settings->setValue("BorderOpacity", ui->spinBoxBorderOpacity->value());
+    settings->setValue("GridLinesOpacity", ui->spinBoxGridLinesOpacity->value());
 }
 
 void SettingsDialog::on_checkBoxMonitorNet_checkStateChanged(const Qt::CheckState &arg1)
@@ -325,5 +352,46 @@ void SettingsDialog::loadNetworkDevices()
             .arg(interface.name())
             .arg(description);
         ui->comboNetworkDevice->addItem(text, interface.name());
+    }
+}
+
+QIcon SettingsDialog::createPenStyleIcon(Qt::PenStyle style, const QColor &color,
+    const QSize &size, qreal dpr)
+{
+    QPixmap pixmap(size * dpr);
+    pixmap.setDevicePixelRatio(dpr);
+    pixmap.fill(Qt::transparent);
+    if (style != Qt::NoPen)
+    {
+        QPainter painter(&pixmap);
+        QPen pen(color, 2, style);
+        painter.setPen(pen);
+        const int y = size.height() / 2;
+        painter.drawLine(2, y, size.width() - 2, y);
+    }
+    return QIcon(pixmap);
+}
+
+void SettingsDialog::setupLineStyleComboBox(QComboBox *combo)
+{
+    combo->clear();
+    combo->setIconSize(QSize(48, 16));
+    // Use the current theme's foreground color (works in both light and dark themes)
+    const QColor lineColor = combo->palette().color(QPalette::WindowText);
+    const qreal dpr = combo->devicePixelRatioF();
+    const QList<QPair<Qt::PenStyle, QString>> styles =
+    {
+        {Qt::SolidLine, QObject::tr("Solid")},
+        {Qt::DashLine, QObject::tr("Dashed")},
+        {Qt::DotLine, QObject::tr("Dotted")},
+        {Qt::DashDotLine, QObject::tr("Dash-Dot")},
+        {Qt::DashDotDotLine, QObject::tr("Dash-Dot-Dot")}/*,
+        {Qt::NoPen, QObject::tr("None")} // optional*/
+    };
+    for (const auto &[style, label] : styles)
+    {
+        combo->addItem(createPenStyleIcon(style, lineColor, combo->iconSize(), dpr),
+            label,
+            QVariant::fromValue(style));
     }
 }

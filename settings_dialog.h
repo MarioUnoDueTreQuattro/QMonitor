@@ -5,6 +5,11 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QSettings>
+#include <QComboBox>
+#include <QIcon>
+#include <QPainter>
+#include <QPen>
+#include <QPixmap>
 
 namespace Ui
 {
@@ -31,6 +36,8 @@ private:
     void loadColors();
     void saveColors();
     void loadNetworkDevices();
+    void setupLineStyleComboBox(QComboBox *combo);
+    QIcon createPenStyleIcon(Qt::PenStyle style, const QColor &color, const QSize &size = QSize(48, 16), qreal dpr = 1.0);
 private slots:
     void on_buttonBox_clicked(QAbstractButton *button);
     void on_SettingsDialog_accepted();

@@ -20,6 +20,9 @@ public:
     void setUnit(NetGraphWidget::UnitMode unit);
     void setSampleHistory(SampleHistory *newSampleHistory);
     void setColors(const QVector<QColor> &newColors);
+    void setBorderColor(const QColor &newColor);
+    void setGridLinesColor(const QColor &newColor);
+    void setGridLinesStyle(int);
     void setMaxVal(qint64 newMaxVal);
     void setWindowOpacityPercent(int percent);
     void setWindowFrameless(bool frameless);

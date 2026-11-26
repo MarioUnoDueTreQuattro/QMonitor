@@ -32,6 +32,9 @@ public:
     void setSampleHistory(SampleHistory *newSampleHistory);
 
     void setColors(const QVector<QColor> &newColors);
+    void setBorderColor(const QColor &newColor);
+    void setGridLinesColor(const QColor &newColor);
+    void setGridLinesStyle(int);
 
     void setMaxVal(qint64 newMaxVal);
 
@@ -68,7 +71,7 @@ private:
     int m_labelHeight;
     QPen m_penRx{QColor(0, 211, 10), 1.5};
     QPen m_penTx{QColor(255, 57, 0), 1.5};
-    QPen m_gridPen{QColor(48, 48, 48), 1, Qt::DashLine};
+    QPen m_gridPen{QColor(48, 48, 48), 1, Qt::DotLine/*DashLine*/};
     QPen m_borderPen{QColor(48, 48, 48)};
     QPen m_labelPen{QColor(160, 160, 160)};
     qint64 getTrayVisibleMax(int visibleSamples) const;
