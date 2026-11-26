@@ -45,7 +45,7 @@ private:
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
     int m_maxGridDivisions;
     bool m_isDragging = false;
-    bool m_isQuitting = false;
+    bool m_hasBeenShown = false;
     bool m_geometryRestored = false;
     void updateX11SkipTaskbar();
     void readSettings();

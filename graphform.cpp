@@ -26,7 +26,7 @@ GraphForm::~GraphForm()
 void GraphForm::closeEvent(QCloseEvent *event)
 {
     qDebug() << __PRETTY_FUNCTION__ << this->windowTitle();
-    if (m_isQuitting)
+    if (m_hasBeenShown)
     {
         if (isVisible())
         {
@@ -42,10 +42,10 @@ void GraphForm::closeEvent(QCloseEvent *event)
     // m_trayIcon->hide();
     // QMainWindow::closeEvent(event);
     // event->accept();
-    settings->setValue("geometry" + this->windowTitle(), saveGeometry());
-    //settings->setValue("windowState", saveState());
-    settings->setValue("WinVisible" + this->windowTitle(), isVisible());
-    settings->sync();
+    // settings->setValue("geometry" + this->windowTitle(), saveGeometry());
+    // //settings->setValue("windowState", saveState());
+    // settings->setValue("WinVisible" + this->windowTitle(), isVisible());
+    // settings->sync();
     hide();
     event->ignore();
 }
@@ -127,10 +127,12 @@ void GraphForm::showEvent(QShowEvent *event)
     });
     m_maxGridDivisions = settings->value("MaxGridDivisions" + this->windowTitle(), 4).toInt();
     ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
+    m_hasBeenShown = true;
+
     // bool bIsVisible = settings->value("WinVisible" + this->windowTitle(), true).toBool();
     // if (!bIsVisible)
     // {
-    //     QTimer::singleShot(1000, this, &GraphForm::hide);
+    // QTimer::singleShot(1000, this, &GraphForm::hide);
     // }
 }
 

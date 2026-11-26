@@ -4,6 +4,7 @@
 #include "settings_dialog.h"
 #include "about.h"
 #include "memoryreader.h"
+#include <QMenu>
 #include <QMessageBox>
 #include <QFile>
 #include <QTextStream>
@@ -45,7 +46,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_netForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
     connect(m_cpuForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
     connect(m_memForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
-
     // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
@@ -135,7 +135,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::hideForm (QWidget * form)
+void MainWindow::hideForm(QWidget * form)
 {
     form->hide();
 }
@@ -789,7 +789,7 @@ void MainWindow::updateStats()
                 m_trayIconNet->setIcon(ui->netGraph->renderTrayPixmap(*m_networkHistory, colors_net, m_netScaleBytes, m_trayIconsSize));
                 ui->netGraph->addData(rxSpeed, txSpeed);
                 //m_trayIcon->showMessage(QString(""),QString("Down: %1\nUp: %2").arg(formatBytes(rxSpeed)).arg(formatBytes(txSpeed)),QSystemTrayIcon::Information,5000);
-                m_trayIconNet->setToolTip(QString("Down: %1\nUp: %2") .arg(s_rxSpeed).arg(s_txSpeed));
+                m_trayIconNet->setToolTip(QString("Down: %1\nUp: %2") .arg(s_rxSpeed, s_txSpeed));
             }
             if (isVisible())
             {
@@ -799,8 +799,7 @@ void MainWindow::updateStats()
                     // .arg(formatBytes(rxSpeed))
                     // .arg(formatBytes(txSpeed)));
                     ui->statusbar->showMessage(QString("DL: %1 - UL: %2")
-                        .arg(s_rxSpeed)
-                        .arg(s_txSpeed));
+                        .arg(s_rxSpeed, s_txSpeed));
                 }
                 // 2. Aggiornamento della velocità media (prelevata dallo storico del grafico)
                 if (m_bShowAvgMax)
@@ -808,15 +807,13 @@ void MainWindow::updateStats()
                     if (ui->labelAvg)
                     {
                         ui->labelAvg->setText(QString("Avg DL: %1 - UL: %2")
-                            .arg(Utils::formatBytes(ui->netGraph->getAvgRx()))
-                            .arg(Utils::formatBytes(ui->netGraph->getAvgTx())));
+                            .arg(Utils::formatBytes(ui->netGraph->getAvgRx()), Utils::formatBytes(ui->netGraph->getAvgTx())));
                     }
                     // 3. Aggiornamento della velocità massima (picco storico)
                     if (ui->labelMax)
                     {
                         ui->labelMax->setText(QString("Max DL: %1 - UL: %2")
-                            .arg(Utils::formatBytes(ui->netGraph->getMaxRx()))
-                            .arg(Utils::formatBytes(ui->netGraph->getMaxTx())));
+                            .arg(Utils::formatBytes(ui->netGraph->getMaxRx()), Utils::formatBytes(ui->netGraph->getMaxTx())));
                     }
                 }
             }
