@@ -31,6 +31,8 @@ public:
     void setWindowShowInTaskbar(bool showInTaskbar);
     NetGraphWidget* graphWidget() const;
     void setMaxGridDivisions(int newMaxGridDivisions);
+    void setCurrentText(QString);
+    void setTooltipText(QString);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

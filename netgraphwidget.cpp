@@ -6,6 +6,7 @@
 #include <QPainterPath>
 #include <QMenu>
 #include <QAction>
+#include <QToolTip>
 #include <QContextMenuEvent>
 
 NetGraphWidget::NetGraphWidget(QWidget *parent)
@@ -558,4 +559,21 @@ void NetGraphWidget::setUploadColor(const QColor &newColor)
         return;
     m_penTx.setColor(newColor);
     update();   // schedule a repaint
+}
+
+void NetGraphWidget::updateToolTipLive(QWidget *widget, const QString &newText)
+{
+    // 1. Aggiorna sempre il testo "memorizzato" per i futuri hover
+    widget->setToolTip(newText);
+
+    // 2. Se il tooltip non è visibile, non fare nulla
+    if (!QToolTip::isVisible())
+        return;
+
+    // 3. Verifica che il cursore sia ancora sopra il widget
+    QPoint localPos = widget->mapFromGlobal(QCursor::pos());
+    if (widget->rect().contains(localPos)) {
+        // Forza l'aggiornamento del tooltip visibile
+        QToolTip::showText(QCursor::pos(), newText, widget);
+    }
 }

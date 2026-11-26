@@ -38,6 +38,7 @@ public:
     void setMaxVal(qint64 newMaxVal);
     void setMaxGridDivisions(int newMaxGridDivisions);
 
+    void updateToolTipLive(QWidget *widget, const QString &newText);
 protected:
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;

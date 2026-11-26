@@ -16,6 +16,13 @@ GraphForm::GraphForm(QWidget *parent) :
     ui->labelMax->setText("");
     ui->labelCurrent->setText("");
     readSettings();
+    this->setAttribute(Qt::WA_AlwaysShowToolTips);
+    ui->labelCurrent->setText("");
+    ui->labelMax->setText("");
+    ui->labelAvg->setText("");
+    ui->labelCurrent->setVisible(false);
+    ui->labelAvg->setVisible(false);
+    ui->labelMax->setVisible(false);
 }
 
 GraphForm::~GraphForm()
@@ -149,6 +156,17 @@ void GraphForm::setMaxGridDivisions(int newMaxGridDivisions)
 {
     m_maxGridDivisions = newMaxGridDivisions;
     ui->netGraph->setMaxGridDivisions(m_maxGridDivisions);
+}
+
+void GraphForm::setCurrentText(QString sText)
+{
+    ui->labelCurrent->setText(sText);
+}
+
+void GraphForm::setTooltipText(QString sText)
+{
+    //ui->netGraph->setToolTip(sText);
+    ui->netGraph->updateToolTipLive(ui->netGraph, sText);
 }
 
 void GraphForm::setMaxVal(qint64 newMaxVal)
