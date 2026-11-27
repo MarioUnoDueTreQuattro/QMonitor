@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_netForm->setWindowTitle("Network");
     m_cpuForm->setWindowTitle("CPU");
     m_memForm->setWindowTitle("Memory");
+    setWindowTitle("Network");
+    // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     m_netForm->setUnit(NetGraphWidget::UnitMode::UnitModeNet);
     m_cpuForm->setUnit(NetGraphWidget::UnitMode::UnitModePercent);
     m_memForm->setUnit(NetGraphWidget::UnitMode::UnitModeMemory);
@@ -46,7 +48,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_netForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
     connect(m_cpuForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
     connect(m_memForm->graphWidget(), &NetGraphWidget::hideRequested, this, &MainWindow::hideForm);
-    // setWindowTitle(QString("QMonitor [%1]").arg(m_iface));
     settings = new QSettings();
     // Timer di campionamento (1 secondo)
     m_MonitorNet = settings->value("MonitorNet", true).toBool();
@@ -555,57 +556,57 @@ void MainWindow::setWindowAlwaysOnTop(bool enabled)
 /*
 void MainWindow::setWindowAlwaysOnTop(bool enabled)
 {
-    const bool wasVisible = isVisible();
-    Qt::WindowFlags flags = windowFlags();
-    if (enabled)
-    {
-        flags |= Qt::WindowStaysOnTopHint;
-        // flags |= Qt::BypassWindowManagerHint;
-    }
-    else
-    {
-        flags &= ~Qt::WindowStaysOnTopHint;
-        // flags &= ~Qt::BypassWindowManagerHint;
-    }
-    setWindowFlags(flags);
-    if (wasVisible)
-    {
-        show();
-        raise();
-    }
-    // Enforce EWMH _NET_WM_STATE_ABOVE on X11 / Openbox to stay above full-screen windows
-    if (isVisible())
-    {
-        createWinId();
-        if (QWindow *nativeWin = windowHandle())
-        {
-            Display *display = XOpenDisplay(nullptr);
-            if (display)
-            {
-                Atom atomState = XInternAtom(display, "_NET_WM_STATE", False);
-                Atom atomAbove = XInternAtom(display, "_NET_WM_STATE_ABOVE", False);
-                if (atomState != None && atomAbove != None)
-                {
-                    XEvent xev;
-                    std::memset(&xev, 0, sizeof(xev));
-                    xev.type = ClientMessage;
-                    xev.xclient.window = nativeWin->winId();
-                    xev.xclient.message_type = atomState;
-                    xev.xclient.format = 32;
-                    // action: 1 = add property (always on top), 0 = remove property (normal)
-                    xev.xclient.data.l[0] = enabled ? 1 : 0;
-                    xev.xclient.data.l[1] = atomAbove;
-                    xev.xclient.data.l[2] = 0;
-                    xev.xclient.data.l[3] = 0;
-                    xev.xclient.data.l[4] = 0;
-                    XSendEvent(display, DefaultRootWindow(display), False,
-                        SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-                    XFlush(display);
-                }
-                XCloseDisplay(display);
-            }
-        }
-    }
+const bool wasVisible = isVisible();
+Qt::WindowFlags flags = windowFlags();
+if (enabled)
+{
+flags |= Qt::WindowStaysOnTopHint;
+// flags |= Qt::BypassWindowManagerHint;
+}
+else
+{
+flags &= ~Qt::WindowStaysOnTopHint;
+// flags &= ~Qt::BypassWindowManagerHint;
+}
+setWindowFlags(flags);
+if (wasVisible)
+{
+show();
+raise();
+}
+// Enforce EWMH _NET_WM_STATE_ABOVE on X11 / Openbox to stay above full-screen windows
+if (isVisible())
+{
+createWinId();
+if (QWindow *nativeWin = windowHandle())
+{
+Display *display = XOpenDisplay(nullptr);
+if (display)
+{
+Atom atomState = XInternAtom(display, "_NET_WM_STATE", False);
+Atom atomAbove = XInternAtom(display, "_NET_WM_STATE_ABOVE", False);
+if (atomState != None && atomAbove != None)
+{
+XEvent xev;
+std::memset(&xev, 0, sizeof(xev));
+xev.type = ClientMessage;
+xev.xclient.window = nativeWin->winId();
+xev.xclient.message_type = atomState;
+xev.xclient.format = 32;
+// action: 1 = add property (always on top), 0 = remove property (normal)
+xev.xclient.data.l[0] = enabled ? 1 : 0;
+xev.xclient.data.l[1] = atomAbove;
+xev.xclient.data.l[2] = 0;
+xev.xclient.data.l[3] = 0;
+xev.xclient.data.l[4] = 0;
+XSendEvent(display, DefaultRootWindow(display), False,
+SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+XFlush(display);
+}
+XCloseDisplay(display);
+}
+}
+}
 }
 */
 void MainWindow::setWindowOpacityPercent(int percent)
@@ -713,13 +714,13 @@ void MainWindow::sampleMemory()
     QString sMemory = QString("RAM used: %1\n").arg(formatBytesToMB(m_memoryHistory->latestValue(0)));
     sMemory.append(QString("Swap used: %1\n").arg(formatBytesToMB(m_memoryHistory->latestValue(2))));
     sMemory.append(QString("ZRam used: %1").arg(formatBytesToMB(m_memoryHistory->latestValue(1))));
-        */
+    */
     QString sMemory = QString("RAM used: %1\nSwap used: %2\nZRam used: %3")
-                          .arg(
-                              formatBytesToMB(m_memoryHistory->latestValue(0)),
-                              formatBytesToMB(m_memoryHistory->latestValue(2)),
-                              formatBytesToMB(m_memoryHistory->latestValue(1))
-                              );
+        .arg(
+            formatBytesToMB(m_memoryHistory->latestValue(0)),
+            formatBytesToMB(m_memoryHistory->latestValue(2)),
+            formatBytesToMB(m_memoryHistory->latestValue(1))
+        );
     m_trayIconRAM->setToolTip(sMemory);
     //m_memForm->setCurrentText(sMemory);
     m_memForm->setTooltipText(sMemory);
@@ -844,7 +845,7 @@ void MainWindow::updateStats()
             {
                 if (ui->labelSpeed)
                 {
-                    // ui->labelSpeed->setText(QString("DL: %1  |  UL: %2")
+                    // ui->labelSpeed->setText(QString("DL: %1 | UL: %2")
                     // .arg(formatBytes(rxSpeed))
                     // .arg(formatBytes(txSpeed)));
                     ui->statusbar->showMessage(QString("DL: %1 - UL: %2")
@@ -922,78 +923,78 @@ bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 
 /*
 bool MainWindow::readNetDev(const QString &targetIface, qint64 &rxBytes, qint64 &txBytes)
 {
-    QFile file("/proc/net/dev");
-    if (!file.open(QIODevice::ReadOnly))
-        return false;
+QFile file("/proc/net/dev");
+if (!file.open(QIODevice::ReadOnly))
+return false;
 
-    const QByteArray content = file.readAll();
-    file.close();
+const QByteArray content = file.readAll();
+file.close();
 
-    // Built once, not for every line
-    const QByteArray interfacePrefix = targetIface.toLatin1() + ':';
+// Built once, not for every line
+const QByteArray interfacePrefix = targetIface.toLatin1() + ':';
 
-    const QList<QByteArray> lines = content.split('\n');
-    for (int i = 0; i < lines.size(); ++i)
-    {
-        // Lines look like "  eth0: 1234 5 0 0 0 0 0 0 5678 ..."
-        // The two header lines never start with an interface name.
-        const QByteArray line = lines.at(i).trimmed();
-        if (!line.startsWith(interfacePrefix))
-            continue;
+const QList<QByteArray> lines = content.split('\n');
+for (int i = 0; i < lines.size(); ++i)
+{
+// Lines look like " eth0: 1234 5 0 0 0 0 0 0 5678 ..."
+// The two header lines never start with an interface name.
+const QByteArray line = lines.at(i).trimmed();
+if (!line.startsWith(interfacePrefix))
+continue;
 
-        // Split only what follows the colon: with long interface names the
-        // first counter can be glued to the colon, so the old index-based
-        // approach (parts[1], parts[9]) could break.
-        // Fields after the colon: 0 = rx bytes, 8 = tx bytes
-        const QList<QByteArray> fields = line.mid(interfacePrefix.size()).simplified().split(' ');
-        if (fields.size() < 9)
-            return false;
+// Split only what follows the colon: with long interface names the
+// first counter can be glued to the colon, so the old index-based
+// approach (parts[1], parts[9]) could break.
+// Fields after the colon: 0 = rx bytes, 8 = tx bytes
+const QList<QByteArray> fields = line.mid(interfacePrefix.size()).simplified().split(' ');
+if (fields.size() < 9)
+return false;
 
-        rxBytes = fields.at(0).toLongLong();
-        txBytes = fields.at(8).toLongLong();
-        return true;
-    }
-    return false;
+rxBytes = fields.at(0).toLongLong();
+txBytes = fields.at(8).toLongLong();
+return true;
+}
+return false;
 }
 */
 
 /*
 bool MainWindow::readNetDev(const QString & targetIface, qint64 & rxBytes, qint64 & txBytes)
 {
-    QFile file("/proc/net/dev");
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
-    QTextStream in(&file);
-    in.readLine();
-    in.readLine();
-    while (!in.atEnd())
-    {
-        QString line = in.readLine().trimmed();
-        if (line.startsWith(targetIface + ":"))
-        {
-            QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-            if (parts.size() >= 10)
-            {
-                rxBytes = parts[1].toLongLong();
-                txBytes = parts[9].toLongLong();
-                return true;
-            }
-        }
-    }
-    return false;
+QFile file("/proc/net/dev");
+if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+QTextStream in(&file);
+in.readLine();
+in.readLine();
+while (!in.atEnd())
+{
+QString line = in.readLine().trimmed();
+if (line.startsWith(targetIface + ":"))
+{
+QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+if (parts.size() >= 10)
+{
+rxBytes = parts[1].toLongLong();
+txBytes = parts[9].toLongLong();
+return true;
+}
+}
+}
+return false;
 }
 */
 /*
 QString MainWindow::formatBytesNet(qint64 bytes)
 {
-    // if (bytes < 1024) return QString("%1 B/s").arg(bytes);
-    // if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
-    // return QString("%1 MB/s").arg(bytes / (BYTES_PER_MB), 0, 'f', 1);
-    if (bytes < 1024) return QString("%1 B").arg(bytes);
-    const bool isKb = bytes < BYTES_PER_MB;
-    const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
-    const char *unit = isKb ? "KB" : "MB";
-    if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
-    return QString("%1 %2").arg(qRound(value)).arg(unit);
+// if (bytes < 1024) return QString("%1 B/s").arg(bytes);
+// if (bytes < 1024 * 1024) return QString("%1 KB/s").arg(bytes / 1024.0, 0, 'f', 1);
+// return QString("%1 MB/s").arg(bytes / (BYTES_PER_MB), 0, 'f', 1);
+if (bytes < 1024) return QString("%1 B").arg(bytes);
+const bool isKb = bytes < BYTES_PER_MB;
+const double value = isKb ? bytes / 1024.0 : bytes / BYTES_PER_MB;
+const char *unit = isKb ? "KB" : "MB";
+if (value < 20.0) return QString("%1 %2").arg(value, 0, 'f', 1).arg(unit);
+return QString("%1 %2").arg(qRound(value)).arg(unit);
 }
 */
 

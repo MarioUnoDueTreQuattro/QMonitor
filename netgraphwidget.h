@@ -22,7 +22,7 @@ public:
     void setDrawMode(DrawMode newMode);
     void setUnitMode(UnitMode newMode);
     QPixmap renderTrayIcon(int size);
-    static QPixmap renderTrayPixmap(SampleHistory &history, QVector<QColor> &colors, double maxValue, int size);
+    QPixmap renderTrayPixmap(SampleHistory &history, QVector<QColor> &colors, double maxValue, int size);
     qint64 getMaxRx() const;
     qint64 getMaxTx() const;
     qint64 getAvgRx() const;
@@ -62,6 +62,7 @@ private:
     SampleHistory *m_sampleHistory;
     QVector<QColor> m_colors;
     QVector<DataPoint> m_history;
+    QVector<QLine> m_linesBuffer;
     int m_maxHistorySize; // Numero di campioni visibili (es. 60 secondi)
     qint64 m_maxVal;      // Valore massimo corrente sull'asse Y (in Byte/s)
     bool m_paused = false;

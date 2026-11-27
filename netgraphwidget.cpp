@@ -220,7 +220,7 @@ void NetGraphWidget::setGridLinesStyle(int rawValue)
 
 void NetGraphWidget::setLabelColor(const QColor &newColor)
 {
-m_labelPen.setColor(newColor);
+    m_labelPen.setColor(newColor);
 }
 
 void NetGraphWidget::setSampleHistory(SampleHistory *history)
@@ -261,7 +261,7 @@ void NetGraphWidget::drawSeriesBars2(QPainter &painter, const QRect &graphRect,
     const SampleHistory &history,
     const QVector<QColor> &seriesColors, double maxValue)
 {
-    if (m_maxVal <= 0 || history.sampleCount() == 0)
+    if (maxValue <= 0 || history.sampleCount() == 0)
         return;
     // qDebug() << "history.sampleCount():" << history.sampleCount();
     const int bottom = graphRect.bottom();
@@ -270,21 +270,26 @@ void NetGraphWidget::drawSeriesBars2(QPainter &painter, const QRect &graphRect,
     const int firstSample = history.sampleCount() - samplesToDraw;
     const int firstX = graphRect.right() - samplesToDraw + 1;
     painter.setRenderHint(QPainter::Antialiasing, false);
+    m_linesBuffer.reserve(samplesToDraw);
     for (int s = 0; s < history.seriesCount() && s < seriesColors.size(); ++s)
     {
-        QVector<QLine> lines;
-        lines.reserve(samplesToDraw);
+        m_linesBuffer.clear();          // mantiene la capacità!
+        // QVector<QLine> lines;
+        // lines.reserve(samplesToDraw);
+        const QVector<qint64> &data = history.seriesData(s);
         for (int i = 0; i < samplesToDraw; ++i)
         {
-            double value = history.valueAt(s, firstSample + i);
+            const double value = data[firstSample + i];
+            //double value = history.valueAt(s, firstSample + i);
             int barHeight = static_cast<int>(value / maxValue * graphRect.height());
             barHeight = qBound(0, barHeight, graphRect.height());
             if (barHeight == 0) continue; //avoid bottom line
             int x = firstX + i;
-            lines.append(QLine(x, bottom, x, bottom - barHeight + 1));
+            m_linesBuffer.append(QLine(x, bottom, x, bottom - barHeight + 1));
+            // lines.append(QLine(x, bottom, x, bottom - barHeight + 1));
         }
         painter.setPen(QPen(seriesColors.at(s), 1));
-        painter.drawLines(lines);
+        painter.drawLines(m_linesBuffer);
     }
 }
 
@@ -328,7 +333,7 @@ QPixmap NetGraphWidget::renderTrayPixmap(SampleHistory &history,
     QPixmap pixmap(size, size);
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
-    paintTrayBars(painter, QRect(0, 0, size, size), history, colors, maxValue);
+    drawSeriesBars2(painter, QRect(0, 0, size, size), history, colors, maxValue);
     return pixmap;
 }
 
@@ -565,14 +570,13 @@ void NetGraphWidget::updateToolTipLive(QWidget *widget, const QString &newText)
 {
     // 1. Aggiorna sempre il testo "memorizzato" per i futuri hover
     widget->setToolTip(newText);
-
     // 2. Se il tooltip non è visibile, non fare nulla
     if (!QToolTip::isVisible())
         return;
-
     // 3. Verifica che il cursore sia ancora sopra il widget
     QPoint localPos = widget->mapFromGlobal(QCursor::pos());
-    if (widget->rect().contains(localPos)) {
+    if (widget->rect().contains(localPos))
+    {
         // Forza l'aggiornamento del tooltip visibile
         QToolTip::showText(QCursor::pos(), newText, widget);
     }

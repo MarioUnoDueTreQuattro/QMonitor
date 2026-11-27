@@ -80,6 +80,7 @@ CMakeLists.txt.user*
 .pch/
 .rcc/
 .uic/
+/*.bak
 /.kdev4/QMonitor.kdev4
 /build*/
 /.qtcreator/

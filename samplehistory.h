@@ -13,7 +13,10 @@ class SampleHistory : public QObject
 
 public:
     explicit SampleHistory(int seriesCount, QObject *parent = nullptr);
-
+    inline const QVector<qint64>& seriesData(int seriesIndex) const
+    {
+        return m_series[seriesIndex];
+    }
     // 'values' must contain exactly seriesCount() values, in series order
     void addSample(const QVector<qint64> &values);
     qint64 valueAt(int seriesIndex, int sampleIndex) const;
