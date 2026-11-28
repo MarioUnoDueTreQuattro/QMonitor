@@ -240,7 +240,7 @@ void MainWindow::setNetworkInterface(const QString &interfaceName)
 void MainWindow::trayIconNetActivated(QSystemTrayIcon::ActivationReason reason)
 {
     qDebug() << __PRETTY_FUNCTION__ ;
-    if (reason == QSystemTrayIcon::Trigger) toggleMainWindow();
+    if (reason == QSystemTrayIcon::Trigger) toggleNetWindow();
 }
 
 void MainWindow::trayIconCPUActivated(QSystemTrayIcon::ActivationReason reason)
@@ -692,7 +692,7 @@ void MainWindow::sampleCpu()
     m_trayIconCPU->setIcon(ui->netGraph->renderTrayPixmap(*m_cpuHistory, colors_cpu, 100, m_trayIconsSize));
     QString sText = QString("CPU load: %1%") .arg(m_cpuHistory->latestValue(0));
     m_trayIconCPU->setToolTip(sText);
-    //m_cpuForm->setCurrentText(sText);
+    m_cpuForm->setCurrentText(sText);
     m_cpuForm->setTooltipText(sText);
     m_cpuForm->update();
 }
@@ -722,7 +722,7 @@ void MainWindow::sampleMemory()
             formatBytesToMB(m_memoryHistory->latestValue(1))
         );
     m_trayIconRAM->setToolTip(sMemory);
-    //m_memForm->setCurrentText(sMemory);
+    m_memForm->setCurrentText(sMemory);
     m_memForm->setTooltipText(sMemory);
     m_memForm->update();
 }
@@ -769,6 +769,7 @@ void MainWindow::readColors()
     defaultColor.setAlpha(iAlplha);
     colors_net.append(defaultColor);
     ui->netGraph->setColors(colors_net);
+    m_netForm->setColors(colors_net);
     m_cpuForm->setColors(colors_cpu);
     m_memForm->setColors(colors_ram);
     // set border and grid colors
@@ -779,6 +780,7 @@ void MainWindow::readColors()
     defaultColor.setAlpha(iAlplha);
     ui->netGraph->setBorderColor(defaultColor);
     m_cpuForm->setBorderColor(defaultColor);
+    m_netForm->setBorderColor(defaultColor);
     m_memForm->setBorderColor(defaultColor);
     defaultColor = QColor(48, 48, 48, 255);
     defaultColor = QColor(settings->value("pushButtonColorGridLines", defaultColor.name()).toString());
@@ -787,6 +789,7 @@ void MainWindow::readColors()
     defaultColor.setAlpha(iAlplha);
     ui->netGraph->setGridLinesColor(defaultColor);
     m_cpuForm->setGridLinesColor(defaultColor);
+    m_netForm->setGridLinesColor(defaultColor);
     m_memForm->setGridLinesColor(defaultColor);
     defaultColor = QColor(160, 160, 160, 255);
     defaultColor = QColor(settings->value("pushButtonColorLabel", defaultColor.name()).toString());
@@ -795,12 +798,14 @@ void MainWindow::readColors()
     defaultColor.setAlpha(iAlplha);
     ui->netGraph->setLabelColor(defaultColor);
     m_cpuForm->setLabelColor(defaultColor);
+    m_netForm->setLabelColor(defaultColor);
     m_memForm->setLabelColor(defaultColor);
     // grid style
     const int rawValue = settings->value("GridLinesStyle", static_cast<int>(Qt::DotLine)).toInt();
     const auto style = static_cast<Qt::PenStyle>(rawValue);
     ui->netGraph->setGridLinesStyle(style);
     m_cpuForm->setGridLinesStyle(style);
+    m_netForm->setGridLinesStyle(style);
     m_memForm->setGridLinesStyle(style);
 }
 
@@ -838,8 +843,14 @@ void MainWindow::updateStats()
                 m_netScaleBytes = m_networkHistory->maxValueInLast(m_trayIconsSize, 0);
                 m_trayIconNet->setIcon(ui->netGraph->renderTrayPixmap(*m_networkHistory, colors_net, m_netScaleBytes, m_trayIconsSize));
                 ui->netGraph->addData(rxSpeed, txSpeed);
+                m_netForm->setMaxVal(m_networkHistory->maxValue());
+                m_netForm->update();
                 //m_trayIcon->showMessage(QString(""),QString("Down: %1\nUp: %2").arg(formatBytes(rxSpeed)).arg(formatBytes(txSpeed)),QSystemTrayIcon::Information,5000);
-                m_trayIconNet->setToolTip(QString("Down: %1\nUp: %2") .arg(s_rxSpeed, s_txSpeed));
+                QString sNetTooltip = QString("Down: %1\nUp: %2") .arg(s_rxSpeed, s_txSpeed);
+                m_trayIconNet->setToolTip(sNetTooltip);
+                m_netForm->setTooltipText(sNetTooltip);
+                m_netForm->setCurrentText(sNetTooltip);
+
             }
             if (isVisible())
             {

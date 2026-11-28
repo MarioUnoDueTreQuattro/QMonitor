@@ -20,7 +20,7 @@ GraphForm::GraphForm(QWidget *parent) :
     ui->labelCurrent->setText("");
     ui->labelMax->setText("");
     ui->labelAvg->setText("");
-    ui->labelCurrent->setVisible(false);
+    ui->labelCurrent->setVisible(true);
     ui->labelAvg->setVisible(false);
     ui->labelMax->setVisible(false);
 }
@@ -30,9 +30,8 @@ GraphForm::~GraphForm()
     delete ui;
 }
 
-void GraphForm::closeEvent(QCloseEvent *event)
+void GraphForm::savePosition()
 {
-    qDebug() << __PRETTY_FUNCTION__ << this->windowTitle();
     if (m_hasBeenShown)
     {
         if (isVisible())
@@ -42,6 +41,15 @@ void GraphForm::closeEvent(QCloseEvent *event)
         }
         settings->setValue("WinVisible" + this->windowTitle(), isVisible());
         settings->sync();
+    }
+}
+
+void GraphForm::closeEvent(QCloseEvent *event)
+{
+    qDebug() << __PRETTY_FUNCTION__ << this->windowTitle();
+    if (m_hasBeenShown)
+    {
+        savePosition();
         event->accept();
         return;
     }
@@ -150,6 +158,14 @@ void GraphForm::mouseReleaseEvent(QMouseEvent *event)
         event->accept();
     }
     QWidget::mouseReleaseEvent(event);
+}
+
+void GraphForm::resizeEvent(QResizeEvent *event)
+{
+    QTimer::singleShot(200, this, [this]()
+    {
+        savePosition();
+    });
 }
 
 void GraphForm::setMaxGridDivisions(int newMaxGridDivisions)
